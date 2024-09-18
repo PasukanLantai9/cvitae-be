@@ -32,7 +32,7 @@ jobs:
           echo "Copying SwaggerUI static source code to Runner"
           docker cp swagger_doc:/usr/share/nginx/html ${{ github.workspace }}/app
           echo "Copying spec file to /app"
-          cp ${{ github.workspace }}/docs/documentations.yaml ${{ github.workspace }}/app
+          cp ${{ github.workspace }}/api/documentations.yaml ${{ github.workspace }}/app
           echo "Replacing SwaggerUI URL to use local spec file instead"
           sed -i 's/https:\/\/petstore.swagger.io\/v2\/swagger.json/.\/documentation.yaml/g' ${{ github.workspace }}/app/swagger-initializer.js
           echo "Replacing title of the website"

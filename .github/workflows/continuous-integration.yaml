@@ -1,0 +1,14 @@
+name: 🧪 Run Test for the source code!
+
+on:
+  push:
+    branches: [ master ]
+    paths:
+      - .github/workflows/continuous-integration.yaml
+
+jobs:
+
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4

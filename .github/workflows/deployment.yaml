@@ -1,0 +1,15 @@
+name: 🚀 Deploy API to booth server Production and Sandbox
+
+on:
+  push:
+    branches: [ master ]
+    paths:
+      - .github/workflows/deployment.yaml
+
+
+jobs:
+
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4

@@ -1,0 +1,29 @@
+openapi: 3.0.3
+info:
+  title: Career Path API Documentation.
+  description: |-
+    Career Path is an app that offers personalized career path recommendations and a platform to build professional CVs. 
+    Users can upload a CV or connect their LinkedIn profile for analysis. Powered by machine learning, the app tailors 
+    career suggestions to individual skills and experience, while also providing CV creation tools.
+  version: 1.0.0
+
+servers:
+  - url: 'https://careerpath.akbarfikri.my.id/api/v1'
+    description: Production server (uses live data). Still on v1.0.0 API
+  - url: 'https://sandbox-careerpath.akbarfikri.my.id/api/v1'
+    description: Sandbox server (uses test data)
+
+tags:
+  - name: Authentication
+    description: Its a group that provided all feature about authentication.
+
+paths:
+  /auth/register:
+    post:
+      tags:
+        - Authentication
+
+  /auth/sigin:
+    post:
+      tags:
+        - Authentication

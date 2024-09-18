@@ -1,0 +1,44 @@
+name: 🚀 Deploy API Documenation using SwaggerUI OAS 3.1
+env:
+  VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+  VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+
+on:
+  push:
+    branches: [ master ]
+    paths:
+      - api/documentation.yaml
+
+jobs:
+  build:
+    name: 💫 Generate SwaggerUI & Deploy
+    runs-on: ubuntu-latest
+    steps:
+      - name: 📝 Get latest API specification
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          sparse-checkout: |-
+            api/documentation.yaml
+          sparse-checkout-cone-mode: false
+      - name: 🐳 Run Container
+        uses: addnab/docker-run-action@v3
+        with:
+          image: swaggerapi/swagger-ui:v5.10.5
+          options: --name swagger_doc
+      - name: 📂 Copy Generated Swagger UI
+        shell: bash
+        run: |-
+          echo "Copying SwaggerUI static source code to Runner"
+          docker cp swagger_doc:/usr/share/nginx/html ${{ github.workspace }}/app
+          echo "Copying spec file to /app"
+          cp ${{ github.workspace }}/docs/documentations.yaml ${{ github.workspace }}/app
+          echo "Replacing SwaggerUI URL to use local spec file instead"
+          sed -i 's/https:\/\/petstore.swagger.io\/v2\/swagger.json/.\/documentation.yaml/g' ${{ github.workspace }}/app/swagger-initializer.js
+          echo "Replacing title of the website"
+          sed -i 's/<title>Swagger UI<\/title>/<title>Documentation - Career Path API<\/title>/g' ${{ github.workspace }}/app/index.html
+      - name: 🌠 Deploy to Vercel
+        working-directory: ${{ github.workspace }}/app
+        run: |-
+          npm install --global vercel@latest
+          vercel --token=${{ secrets.VERCEL_TOKEN }} --prod

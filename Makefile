@@ -6,8 +6,11 @@ build:
 run: build
 	@./bin/career-path
 
-test:
-	@go test ./... -v
+test-integrat:
+	@go test ./test/integration/... -v
+
+test-integrat-cov:
+	@go test ./test/integration/... -cover -v
 
 migrate-create:
 	migrate create -ext sql -dir database/migrations $(name)
@@ -17,3 +20,4 @@ migrate-up:
 
 migrate-down:
 	migrate -database "postgres://$(DB_USER):$(DB_PASSWORD)@$(DB_HOST):$(DB_PORT)/$(DB_NAME)?sslmode=$(DB_SSLMODE)" -path database/migrations down
+

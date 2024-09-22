@@ -2,7 +2,11 @@ package config
 
 import (
 	"fmt"
+	authHandler "github.com/bccfilkom/career-path-service/internal/api/authentication/handler"
+	authRepository "github.com/bccfilkom/career-path-service/internal/api/authentication/repository"
+	authService "github.com/bccfilkom/career-path-service/internal/api/authentication/service"
 	"github.com/bccfilkom/career-path-service/internal/pkg/env"
+	"github.com/bccfilkom/career-path-service/pkg/postgres"
 	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v2"
 	"github.com/jmoiron/sqlx"
@@ -11,10 +15,11 @@ import (
 )
 
 type Server struct {
-	app      *fiber.App
-	db       *sqlx.DB
-	handlers []handler
-	log      *logrus.Logger
+	app       *fiber.App
+	db        *sqlx.DB
+	handlers  []handler
+	log       *logrus.Logger
+	validator *validator.Validate
 }
 
 type handler interface {
@@ -23,16 +28,32 @@ type handler interface {
 
 func NewServer(fiberApp *fiber.App, log *logrus.Logger, validator *validator.Validate) (*Server, error) {
 	bootstrap := &Server{
-		app: fiberApp,
-		log: log,
+		app:       fiberApp,
+		log:       log,
+		validator: validator,
 	}
 
 	return bootstrap, nil
 }
 
 func (s *Server) RegisterHandler() {
+	// third party dependecies
+	db, err := postgres.NewInstance()
+	if err != nil {
+		s.log.Fatalf("could not connect to database: %v", err)
+	}
+
+	// repository
+	authRepos := authRepository.New(db)
+
+	// service
+	authServices := authService.New(authRepos)
+
+	// handler
+	authHandlers := authHandler.New(authServices, s.validator)
+
 	s.checkHealth()
-	s.handlers = append(s.handlers)
+	s.handlers = append(s.handlers, authHandlers)
 }
 
 func (s *Server) Run() error {

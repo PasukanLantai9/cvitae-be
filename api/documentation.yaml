@@ -9,7 +9,7 @@ info:
 
 servers:
   - url: 'https://careerpath.akbarfikri.my.id/api/v1'
-    description: Production server (uses live data). Still on v1.0.0 API
+    description: Production server (uses live data)
   - url: 'https://sandbox-careerpath.akbarfikri.my.id/api/v1'
     description: Sandbox server (uses test data)
 
@@ -22,8 +22,76 @@ paths:
     post:
       tags:
         - Authentication
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - password
+                - name
+              properties:
+                email:
+                  type: string
+                  example: test@example.com
+                password:
+                  type: string
+                  example: 12345678
+                  description: mininum length is 8 and maximum length is 32
+                name:
+                  type: string
+                  example: test user
+      responses:
+        "201":
+          description: means the user successfully created, and no contest send.
+        "409":
+          description: means the user with email provided already exist can't create again.
+        "422":
+          description: means that the requirements in the request body are not met correctly.
 
   /auth/sigin:
     post:
       tags:
         - Authentication
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - password
+              properties:
+                email:
+                  type: string
+                  example: test@example.com
+                password:
+                  type: string
+                  example: 12345678
+      responses:
+        "200":
+          description: means the user successfully signin.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - sessionID
+                  - refreshToken
+                  - accessToken
+                  - expiresInSecond
+                properties:
+                  sessionID:
+                    type: string
+                  accessToken:
+                    type: string
+                  refreshToken:
+                    type: string
+                  expiresInSecond:
+                    type: integer
+                    description: represents how many seconds the access token will be valid starting from the creation of the access token
+        "400":
+          description: means the user email or password wrong.
+        "422":
+          description: means that the requirements in the request body are not met correctly.

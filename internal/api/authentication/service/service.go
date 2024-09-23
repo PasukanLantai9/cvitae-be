@@ -12,6 +12,7 @@ type authService struct {
 
 type AuthService interface {
 	RegisterUser(ctx context.Context, req authentication.CreateUserRequest) error
+	SinginUser(ctx context.Context, req authentication.SigninUserRequest) (authentication.SinginUserResponse, error)
 }
 
 func New(authRepository authRepository.Repository) AuthService {

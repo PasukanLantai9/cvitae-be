@@ -52,8 +52,10 @@ func (r *repository) NewClient(tx bool) (Client, error) {
 type Client struct {
 	Users interface {
 		CreateUser(context.Context, entity.User) error
+		GetByEmail(context.Context, string) (entity.User, error)
 	}
 	Sessions interface {
+		CreateSession(context.Context, entity.Session) error
 	}
 
 	Commit   func() error

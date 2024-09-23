@@ -21,3 +21,21 @@ func (h *AuthHandler) HandleRegister(ctx *fiber.Ctx) error {
 
 	return ctx.SendStatus(fiber.StatusCreated)
 }
+
+func (h *AuthHandler) HandleSignin(ctx *fiber.Ctx) error {
+	var req authentication.SigninUserRequest
+	if err := ctx.BodyParser(&req); err != nil {
+		return err
+	}
+
+	if err := h.validator.Struct(&req); err != nil {
+		return err
+	}
+
+	res, err := h.authService.SinginUser(ctx.Context(), req)
+	if err != nil {
+		return err
+	}
+
+	return ctx.Status(fiber.StatusOK).JSON(res)
+}

@@ -1,6 +1,9 @@
 package authRepository
 
 import (
+	"database/sql"
+	"errors"
+	"github.com/bccfilkom/career-path-service/internal/api/authentication"
 	"github.com/bccfilkom/career-path-service/internal/entity"
 	"github.com/jmoiron/sqlx"
 	"golang.org/x/net/context"
@@ -49,4 +52,26 @@ func (r *sessionRepository) CreateSession(ctx context.Context, session entity.Se
 	}
 
 	return nil
+}
+
+func (r *sessionRepository) GetByID(ctx context.Context, id string) (entity.Session, error) {
+	argsKV := map[string]interface{}{
+		"id": id,
+	}
+
+	query, args, err := sqlx.Named(queryGetSessionByID, argsKV)
+	if err != nil {
+		return entity.Session{}, err
+	}
+	query = r.q.Rebind(query)
+
+	var session SessionDB
+	if err := r.q.QueryRowxContext(ctx, query, args...).StructScan(&session); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return entity.Session{}, authentication.ErrSessionWithIDNotFound
+		}
+		return entity.Session{}, err
+	}
+
+	return session.format(), nil
 }

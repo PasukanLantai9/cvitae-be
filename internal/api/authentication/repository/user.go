@@ -81,3 +81,25 @@ func (r *userRepository) GetByEmail(ctx context.Context, email string) (entity.U
 
 	return user.format(), err
 }
+
+func (r *userRepository) GetByID(ctx context.Context, id string) (entity.User, error) {
+	argsKV := map[string]interface{}{
+		"id": id,
+	}
+
+	query, args, err := sqlx.Named(queryGetUserByID, argsKV)
+	if err != nil {
+		return entity.User{}, err
+	}
+	query = r.q.Rebind(query)
+
+	var user userDB
+	if err := r.q.QueryRowxContext(ctx, query, args...).StructScan(&user); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return entity.User{}, authentication.ErrUserWithIDNotFound
+		}
+		return entity.User{}, err
+	}
+
+	return user.format(), err
+}

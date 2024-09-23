@@ -99,3 +99,38 @@ func (s *authService) SinginUser(ctx context.Context, req authentication.SigninU
 		ExpiresInSeconds: int64((time.Minute * 30).Seconds()),
 	}, nil
 }
+
+func (s *authService) GenerateNewAccessToken(ctx context.Context, req entity.Session) (authentication.RefreshTokenResponse, error) {
+	repo, err := s.authRepository.NewClient(false)
+	if err != nil {
+		return authentication.RefreshTokenResponse{}, err
+	}
+
+	originData, err := repo.Sessions.GetByID(ctx, req.ID)
+	if err != nil {
+		return authentication.RefreshTokenResponse{}, authentication.ErrUnableToCreateNewAccessToken
+	}
+
+	if originData.RefreshToken != req.RefreshToken {
+		return authentication.RefreshTokenResponse{}, authentication.ErrUnableToCreateNewAccessToken
+	}
+
+	if time.Now().After(originData.ExpiresAt) {
+		return authentication.RefreshTokenResponse{}, authentication.ErrUnableToCreateNewAccessToken
+	}
+
+	user, err := repo.Users.GetByID(ctx, originData.UserID)
+	if err != nil {
+		return authentication.RefreshTokenResponse{}, err
+	}
+
+	accessToken, err := generateAccessToken(user, entity.AuthProviderNative)
+	if err != nil {
+		return authentication.RefreshTokenResponse{}, err
+	}
+
+	return authentication.RefreshTokenResponse{
+		AccessToken:      accessToken,
+		ExpiresInSeconds: int64((time.Minute * 30).Seconds()),
+	}, nil
+}

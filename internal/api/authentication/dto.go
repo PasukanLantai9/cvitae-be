@@ -17,3 +17,12 @@ type SinginUserResponse struct {
 	ExpiresInSeconds int64  `json:"expiresInSeconds"`
 	SessionID        string `json:"sessionID"`
 }
+
+type RefresTokenRequest struct {
+	RefreshToken string `json:"refreshToken" validate:"required"`
+}
+
+type RefreshTokenResponse struct {
+	AccessToken      string `json:"accessToken"`
+	ExpiresInSeconds int64  `json:"expiresInSeconds"`
+}

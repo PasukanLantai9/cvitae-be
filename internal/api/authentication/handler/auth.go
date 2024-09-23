@@ -39,3 +39,17 @@ func (h *AuthHandler) HandleSignin(ctx *fiber.Ctx) error {
 
 	return ctx.Status(fiber.StatusOK).JSON(res)
 }
+
+func (h *AuthHandler) HandleRefreshToken(ctx *fiber.Ctx) error {
+	req, err := h.parseRefreshTokenRequest(ctx)
+	if err != nil {
+		return err
+	}
+
+	res, err := h.authService.GenerateNewAccessToken(ctx.Context(), req)
+	if err != nil {
+		return err
+	}
+
+	return ctx.Status(fiber.StatusOK).JSON(res)
+}

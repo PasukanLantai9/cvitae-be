@@ -22,5 +22,6 @@ func (h *AuthHandler) Start(srv fiber.Router) {
 	auth := srv.Group("/auth")
 
 	auth.Post("/register", h.HandleRegister)
-	auth.Post("/signin")
+	auth.Post("/signin", h.HandleSignin)
+	auth.Post("/refresh", h.HandleRefreshToken)
 }

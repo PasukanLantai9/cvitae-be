@@ -28,3 +28,18 @@ func generateFreshToken(user entity.User, provider entity.AuthProvider) (string,
 
 	return accessToken, refreshToken, nil
 }
+
+func generateAccessToken(user entity.User, provider entity.AuthProvider) (string, error) {
+	userClaims := map[string]interface{}{
+		"id":       user.ID,
+		"email":    user.Email,
+		"provider": provider,
+	}
+
+	accessToken, err := token.Sign(userClaims, JWTSecret, 30*time.Minute)
+	if err != nil {
+		return "", err
+	}
+
+	return accessToken, nil
+}

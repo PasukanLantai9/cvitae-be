@@ -95,3 +95,46 @@ paths:
           description: means the user email or password wrong.
         "422":
           description: means that the requirements in the request body are not met correctly.
+
+  /auth/refresh:
+    post:
+      tags:
+        - Authentication
+      parameters:
+        - in: query
+          name: sessionID
+          schema:
+            type: string
+          required: true
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - refreshToken
+              properties:
+                refreshToken:
+                  type: string
+                  example: jsadiuicu9wjaisdjaskdkmnsvnbasdwqfved
+      responses:
+        "200":
+          description: means the user successfully signin.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - accessToken
+                  - expiresInSecond
+                properties:
+                  accessToken:
+                    type: string
+                  expiresInSecond:
+                    type: integer
+                    description: represents how many seconds the access token will be valid starting from the creation of the access token
+        "401":
+          description: means the sessionID or refreshToken wrong/expired.
+        "422":
+          description: means that the requirements in the request body or query are not met correctly.
+

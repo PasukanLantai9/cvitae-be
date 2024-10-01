@@ -42,10 +42,11 @@ func (r *repository) NewClient(tx bool) (Client, error) {
 	}
 
 	return Client{
-		Users:    &userRepository{q: db},
-		Sessions: &sessionRepository{q: db},
-		Commit:   commitFunc,
-		Rollback: rollbackFunc,
+		Users:     &userRepository{q: db},
+		Sessions:  &sessionRepository{q: db},
+		UserOauth: &userOauthRepository{q: db},
+		Commit:    commitFunc,
+		Rollback:  rollbackFunc,
 	}, nil
 }
 
@@ -59,6 +60,10 @@ type Client struct {
 		CreateSession(context.Context, entity.Session) error
 		GetByID(context.Context, string) (entity.Session, error)
 	}
+	UserOauth interface {
+		CreateUserOauth(context.Context, entity.UserOauth) error
+		GetByOauthUserID(context.Context, string, string, entity.AuthProvider) (entity.UserOauth, error)
+	}
 
 	Commit   func() error
 	Rollback func() error
@@ -69,5 +74,9 @@ type userRepository struct {
 }
 
 type sessionRepository struct {
+	q sqlx.ExtContext
+}
+
+type userOauthRepository struct {
 	q sqlx.ExtContext
 }

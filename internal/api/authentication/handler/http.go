@@ -24,4 +24,7 @@ func (h *AuthHandler) Start(srv fiber.Router) {
 	auth.Post("/register", h.HandleRegister)
 	auth.Post("/signin", h.HandleSignin)
 	auth.Post("/refresh", h.HandleRefreshToken)
+
+	oauth := srv.Group("/oauth")
+	oauth.Get("/:provider", h.HandleOauthCallback)
 }

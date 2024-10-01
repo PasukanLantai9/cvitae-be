@@ -26,3 +26,14 @@ const (
 		FROM user_sessions
 		WHERE id = :id`
 )
+
+const (
+	queryCreateOauthUser = `
+		INSERT INTO user_oauth (id, user_id, provider, oauth_user_id, access_token, refresh_token, created_at)
+		VALUES (:id, :user_id, :provider, :oauth_user_id, :access_token, :refresh_token, :created_at)`
+
+	queryGetByOauthUserID = `
+		SELECT id, user_id, provider, oauth_user_id, access_token, refresh_token, created_at
+		FROM user_oauth
+		WHERE oauth_user_id = :oauth_user_id AND user_id = :user_id AND provider = :provider`
+)

@@ -138,3 +138,41 @@ paths:
         "422":
           description: means that the requirements in the request body or query are not met correctly.
 
+  /oauth/{provider}:
+    get:
+      tags:
+        - Authentication
+      parameters:
+        - in: query
+          name: code
+          required: true
+        - in: path
+          name: provider
+          required: true
+          description: contains one value "google"
+      responses:
+        "200":
+          description: means the user successfully signin with oauth provider.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - sessionID
+                  - refreshToken
+                  - accessToken
+                  - expiresInSecond
+                properties:
+                  sessionID:
+                    type: string
+                  accessToken:
+                    type: string
+                  refreshToken:
+                    type: string
+                  expiresInSecond:
+                    type: integer
+                    description: represents how many seconds the access token will be valid starting from the creation of the access token
+        "400":
+          description: means the code from oauth is invalid, maybe caused code already claim.
+        "422":
+          description: means that the requirements in the request body are not met correctly.

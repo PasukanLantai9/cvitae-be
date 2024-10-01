@@ -26,3 +26,19 @@ func (h *AuthHandler) parseRefreshTokenRequest(ctx *fiber.Ctx) (entity.Session, 
 		RefreshToken: req.RefreshToken,
 	}, nil
 }
+
+func (h *AuthHandler) getOauthProvider(ctx *fiber.Ctx) (entity.AuthProvider, error) {
+	providerStr := ctx.Params("provider")
+	if providerStr == "" {
+		return entity.AuthProviderUnknown, authentication.ErrInvalidOuthProvider
+	}
+
+	switch providerStr {
+	case "google":
+		return entity.AuthProviderGoogle, nil
+	case "linkedin":
+		return entity.AuthProviderLinkedIn, nil
+	default:
+		return entity.AuthProviderUnknown, authentication.ErrInvalidOuthProvider
+	}
+}

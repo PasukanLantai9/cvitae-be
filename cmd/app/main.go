@@ -2,6 +2,7 @@ package main
 
 import (
 	"github.com/bccfilkom/career-path-service/internal/config"
+	"github.com/bccfilkom/career-path-service/pkg/google"
 	"github.com/joho/godotenv"
 )
 
@@ -12,9 +13,10 @@ func main() {
 		logger.Fatal("Error loading .env file")
 	}
 
+	googles := google.New()
 	fiber := config.NewFiber(logger)
 	validator := config.NewValidator()
-	rest, err := config.NewServer(fiber, logger, validator)
+	rest, err := config.NewServer(fiber, logger, validator, googles)
 	if err != nil {
 		logger.Fatal(err)
 	}

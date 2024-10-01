@@ -6,9 +6,12 @@ import (
 	authRepository "github.com/bccfilkom/career-path-service/internal/api/authentication/repository"
 	authService "github.com/bccfilkom/career-path-service/internal/api/authentication/service"
 	"github.com/bccfilkom/career-path-service/internal/pkg/env"
+	"github.com/bccfilkom/career-path-service/pkg/google"
 	"github.com/bccfilkom/career-path-service/pkg/postgres"
 	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/cors"
+	"github.com/gofiber/fiber/v2/middleware/logger"
 	"github.com/jmoiron/sqlx"
 	"github.com/sirupsen/logrus"
 	"net/http"
@@ -20,23 +23,25 @@ type Server struct {
 	handlers  []handler
 	log       *logrus.Logger
 	validator *validator.Validate
+	google    google.Google
 }
 
 type handler interface {
 	Start(srv fiber.Router)
 }
 
-func NewServer(fiberApp *fiber.App, log *logrus.Logger, validator *validator.Validate) (*Server, error) {
+func NewServer(fiberApp *fiber.App, log *logrus.Logger, validator *validator.Validate, googles google.Google) (*Server, error) {
 	bootstrap := &Server{
 		app:       fiberApp,
 		log:       log,
 		validator: validator,
+		google:    googles,
 	}
 
 	return bootstrap, nil
 }
 
-func (s *Server) RegisterHandler() {
+func (s *Server) registerHandler() {
 	// third party dependecies
 	db, err := postgres.NewInstance()
 	if err != nil {
@@ -47,7 +52,7 @@ func (s *Server) RegisterHandler() {
 	authRepos := authRepository.New(db)
 
 	// service
-	authServices := authService.New(authRepos)
+	authServices := authService.New(authRepos, s.google)
 
 	// handler
 	authHandlers := authHandler.New(authServices, s.validator)
@@ -59,11 +64,15 @@ func (s *Server) RegisterHandler() {
 func (s *Server) Run() error {
 	router := s.app.Group("/api/v1")
 
+	s.registerHandler()
+
+	s.app.Use(cors.New())
+	s.app.Use(logger.New())
 	for _, h := range s.handlers {
 		h.Start(router)
 	}
 
-	addr := env.GetString("APP_ADDR", "127.0.0.1")
+	addr := env.GetString("APP_ADDR", "0.0.0.0")
 	port := env.GetString("APP_PORT", "8000")
 
 	if !env.GetBool("PRODUCTION", false) {

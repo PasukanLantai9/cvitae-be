@@ -12,6 +12,7 @@ import (
 	"github.com/bccfilkom/career-path-service/pkg/google"
 	"github.com/bccfilkom/career-path-service/pkg/mongo"
 	"github.com/bccfilkom/career-path-service/pkg/postgres"
+	redisdb "github.com/bccfilkom/career-path-service/pkg/redis"
 	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
@@ -57,9 +58,14 @@ func (s *Server) registerHandler() {
 		s.log.Fatalf("could not connect to mongodb: %v", err)
 	}
 
+	redisClient, err := redisdb.NewInstance()
+	if err != nil {
+		s.log.Fatalf("could not connect to redisdb: %v", err)
+	}
+
 	// repository
 	authRepos := authRepository.New(db)
-	resumeRepos := resumeRepository.New(mongodb, db)
+	resumeRepos := resumeRepository.New(mongodb, db, redisClient)
 
 	// service
 	authServices := authService.New(authRepos, s.google)

@@ -4,12 +4,15 @@ import (
 	"context"
 	"github.com/bccfilkom/career-path-service/internal/entity"
 	"github.com/jmoiron/sqlx"
+	"github.com/redis/go-redis/v9"
 	"go.mongodb.org/mongo-driver/mongo"
+	"time"
 )
 
 // New creates a new MongoDB repository
-func New(db *mongo.Database, sqlDB *sqlx.DB) Repository {
+func New(db *mongo.Database, sqlDB *sqlx.DB, redisClient *redis.Client) Repository {
 	return &repository{
+		redisDB: redisClient,
 		MongoDB: db,
 		SqlDB:   sqlDB,
 	}
@@ -18,11 +21,13 @@ func New(db *mongo.Database, sqlDB *sqlx.DB) Repository {
 type repository struct {
 	MongoDB *mongo.Database
 	SqlDB   *sqlx.DB
+	redisDB *redis.Client
 }
 
 type Repository interface {
 	NewMongoClient(ctx context.Context, tx bool) (MongoClient, error)
 	NewSqlClient(tx bool) (SqlClient, error)
+	NewCacheClient() (CacheClient, error)
 }
 
 func (r *repository) NewMongoClient(ctx context.Context, tx bool) (MongoClient, error) {
@@ -87,10 +92,17 @@ func (r *repository) NewSqlClient(tx bool) (SqlClient, error) {
 	}, nil
 }
 
+func (r *repository) NewCacheClient() (CacheClient, error) {
+	return &redisRepository{
+		client: r.redisDB,
+	}, nil
+}
+
 type MongoClient struct {
 	Resume interface {
 		CreateResume(ctx context.Context, resume entity.ResumeDetail) (*mongo.InsertOneResult, error)
 		GetByIDAndUserID(ctx context.Context, ID string, userID string) (entity.ResumeDetail, error)
+		Update(ctx context.Context, resumeData entity.ResumeDetail) error
 	}
 	Commit   func() error
 	Rollback func() error
@@ -112,4 +124,14 @@ type SqlClient struct {
 
 type resumeSQLRepository struct {
 	q sqlx.ExtContext
+}
+
+type CacheClient interface {
+	Get(ctx context.Context, key string) (string, error)
+	Set(ctx context.Context, key string, value interface{}, expiration time.Duration) error
+	Delete(ctx context.Context, key string) error
+}
+
+type redisRepository struct {
+	client *redis.Client
 }

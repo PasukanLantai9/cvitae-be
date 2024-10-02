@@ -1,6 +1,8 @@
 package resumeService
 
 import (
+	"encoding/json"
+	"fmt"
 	"github.com/bccfilkom/career-path-service/internal/api/authentication"
 	"github.com/bccfilkom/career-path-service/internal/api/resume"
 	"github.com/bccfilkom/career-path-service/internal/entity"
@@ -42,10 +44,11 @@ func (s resumeService) CreateResume(ctx context.Context, req resume.ResumeReques
 
 	resumeDetail := entity.ResumeDetail{
 		UserID:                 user.ID,
-		Education:              []entity.Education{{}},
-		LeadershipExperience:   []entity.Leadership{{}},
-		ProfessionalExperience: []entity.Experience{{}},
-		Others:                 []entity.Achievement{{}},
+		PersonalDetails:        entity.PersonalDetails{},
+		Education:              make([]entity.Education, 0),
+		LeadershipExperience:   make([]entity.Leadership, 0),
+		ProfessionalExperience: make([]entity.Experience, 0),
+		Others:                 make([]entity.Achievement, 0),
 	}
 
 	result, err := mongoRepo.Resume.CreateResume(ctx, resumeDetail)
@@ -100,4 +103,65 @@ func (s resumeService) GetResumeByID(ctx context.Context, resumeID string, userI
 	}
 
 	return s.formattedResumeDetail(resumeData), nil
+}
+
+func (s resumeService) UpdateResumeByID(ctx context.Context, resumeData entity.ResumeDetail) error {
+	redisRepo, err := s.resumeRepository.NewCacheClient()
+	if err != nil {
+		return err
+	}
+
+	mongoRepo, err := s.resumeRepository.NewMongoClient(ctx, false)
+	if err != nil {
+		return err
+	}
+
+	redisKey := fmt.Sprintf("cv-%s", resumeData.ID.Hex())
+
+	cachedResume, err := redisRepo.Get(ctx, redisKey)
+	if err == nil && cachedResume != "" {
+		var cachedResumeData resume.ResumeDetailDTO
+		err = json.Unmarshal([]byte(cachedResume), &cachedResumeData)
+		if err != nil {
+			return err
+		}
+
+		if cachedResumeData.UserID != resumeData.UserID {
+			return resume.ErrIncorrectObjectID
+		}
+
+		updatedResume, err := json.Marshal(resumeData)
+		if err != nil {
+			return err
+		}
+
+		err = redisRepo.Set(ctx, redisKey, updatedResume, 0)
+		if err != nil {
+			return err
+		}
+
+		return nil
+	}
+
+	_, err = mongoRepo.Resume.GetByIDAndUserID(ctx, resumeData.ID.Hex(), resumeData.UserID)
+	if err != nil {
+		return err
+	}
+
+	err = mongoRepo.Resume.Update(ctx, resumeData)
+	if err != nil {
+		return err
+	}
+
+	updatedResume, err := json.Marshal(resumeData)
+	if err != nil {
+		return err
+	}
+
+	err = redisRepo.Set(ctx, redisKey, updatedResume, 0)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

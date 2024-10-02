@@ -6,5 +6,6 @@ import (
 )
 
 var (
-	ErrIncorrectObjectID = response.NewError(http.StatusBadRequest, "incorrect object id")
+	ErrObjectIDNotProvided = response.NewError(http.StatusUnprocessableEntity, "object ID not provided")
+	ErrIncorrectObjectID   = response.NewError(http.StatusBadRequest, "incorrect object ID")
 )

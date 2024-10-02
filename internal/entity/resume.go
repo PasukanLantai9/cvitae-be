@@ -13,21 +13,23 @@ type Resume struct {
 }
 
 type ResumeDetail struct {
-	ID              primitive.ObjectID `bson:"_id,omitempty"`
-	UserID          string             `bson:"userID,omitempty"`
-	PersonalDetails struct {
-		FullName      string `bson:"fullName,omitempty"`
-		PhoneNumber   string `bson:"phoneNumber,omitempty"`
-		Email         string `bson:"email,omitempty"`
-		Linkedin      string `bson:"linkedin,omitempty"`
-		PortfolioURL  string `bson:"portfolioUrl,omitempty"`
-		Description   string `bson:"description,omitempty"`
-		AddressString string `bson:"addressString,omitempty"`
-	} `bson:"personalDetails,omitempty"`
-	ProfessionalExperience []Experience  `bson:"professionalExperience,omitempty"`
-	Education              []Education   `bson:"education,omitempty"`
-	LeadershipExperience   []Leadership  `bson:"leadershipExperience,omitempty"`
-	Others                 []Achievement `bson:"others,omitempty"`
+	ID                     primitive.ObjectID `bson:"_id,omitempty"`
+	UserID                 string             `bson:"userID,omitempty"`
+	PersonalDetails        PersonalDetails    `bson:"personalDetails,omitempty"`
+	ProfessionalExperience []Experience       `bson:"professionalExperience,omitempty"`
+	Education              []Education        `bson:"education,omitempty"`
+	LeadershipExperience   []Leadership       `bson:"leadershipExperience,omitempty"`
+	Others                 []Achievement      `bson:"others,omitempty"`
+}
+
+type PersonalDetails struct {
+	FullName      string `bson:"fullName,omitempty"`
+	PhoneNumber   string `bson:"phoneNumber,omitempty"`
+	Email         string `bson:"email,omitempty"`
+	Linkedin      string `bson:"linkedin,omitempty"`
+	PortfolioURL  string `bson:"portfolioUrl,omitempty"`
+	Description   string `bson:"description,omitempty"`
+	AddressString string `bson:"addressString,omitempty"`
 }
 
 type Experience struct {

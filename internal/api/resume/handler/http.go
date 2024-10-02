@@ -28,5 +28,5 @@ func (h *ResumeHandler) Start(srv fiber.Router) {
 	resume.Post("/", h.HandleCreateResume)
 	resume.Get("/", h.HandleGetUserResume)
 	resume.Get("/:id", h.HandleGetResumeByID)
-	resume.Patch("/:id")
+	resume.Put("/:id", h.HandleUpdateResume)
 }

@@ -8,7 +8,7 @@ info:
   version: 1.0.0
 
 servers:
-  - url: 'https://careerpath.akbarfikri.my.id/api/v1'
+  - url: 'https://careerpath-api-laplace.bccdev.id/api/v1'
     description: Production server (uses live data)
   - url: 'https://sandbox-careerpath.akbarfikri.my.id/api/v1'
     description: Sandbox server (uses test data)

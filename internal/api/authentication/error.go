@@ -17,4 +17,6 @@ var (
 	ErrUserWithOauthUserIDNotFound = response.NewError(http.StatusNotFound, "user with oauth user ID not found")
 
 	ErrInvalidOuthProvider = response.NewError(http.StatusBadRequest, "invalid oauth provider specified")
+
+	ErrUnauthorized = response.NewError(http.StatusUnauthorized, "unauthorized, access token invalid or expired")
 )

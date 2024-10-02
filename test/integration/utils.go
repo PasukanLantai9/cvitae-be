@@ -4,18 +4,27 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/bccfilkom/career-path-service/internal/entity"
+	"github.com/bccfilkom/career-path-service/internal/pkg/helper"
 	"github.com/bccfilkom/career-path-service/internal/pkg/response"
+	"github.com/bccfilkom/career-path-service/internal/pkg/token"
 	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/utils"
+	"golang.org/x/crypto/bcrypt"
 	"io"
 	"net/http"
 	"os"
+	"time"
 )
 
 var app = fiber.New(fiber.Config{
 	ErrorHandler: newErrorHandler(),
 })
+
+const (
+	JWTSecret = "JWT_SECRET"
+)
 
 func GenerateDSN() string {
 	DBName := os.Getenv("DB_NAME")
@@ -78,4 +87,40 @@ func printResponse(response *http.Response) {
 	} else {
 		fmt.Printf("Parsed response body: %#v\n", responseBody)
 	}
+}
+
+func generateUser(email string, username string) (entity.User, string, error) {
+	ulid, err := helper.NewUlidFromTimestamp(time.Now())
+	if err != nil {
+		return entity.User{}, "", err
+	}
+
+	user := entity.User{
+		ID:       ulid,
+		Username: username,
+		Password: "test-password",
+		Email:    email,
+	}
+
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
+	if err != nil {
+		return entity.User{}, "", err
+	}
+
+	return user, string(hashedPassword), nil
+}
+
+func generateAccessToken(user entity.User, provider entity.AuthProvider) (string, error) {
+	userClaims := map[string]interface{}{
+		"id":       user.ID,
+		"email":    user.Email,
+		"provider": provider,
+	}
+
+	accessToken, err := token.Sign(userClaims, JWTSecret, 30*time.Minute)
+	if err != nil {
+		return "", err
+	}
+
+	return accessToken, nil
 }

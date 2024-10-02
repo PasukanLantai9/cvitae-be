@@ -5,8 +5,12 @@ import (
 	authHandler "github.com/bccfilkom/career-path-service/internal/api/authentication/handler"
 	authRepository "github.com/bccfilkom/career-path-service/internal/api/authentication/repository"
 	authService "github.com/bccfilkom/career-path-service/internal/api/authentication/service"
+	resumeHandler "github.com/bccfilkom/career-path-service/internal/api/resume/handler"
+	resumeRepository "github.com/bccfilkom/career-path-service/internal/api/resume/repository"
+	resumeService "github.com/bccfilkom/career-path-service/internal/api/resume/service"
 	"github.com/bccfilkom/career-path-service/internal/pkg/env"
 	"github.com/bccfilkom/career-path-service/pkg/google"
+	"github.com/bccfilkom/career-path-service/pkg/mongo"
 	"github.com/bccfilkom/career-path-service/pkg/postgres"
 	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v2"
@@ -48,17 +52,25 @@ func (s *Server) registerHandler() {
 		s.log.Fatalf("could not connect to database: %v", err)
 	}
 
+	mongodb, err := mongo.NewMongoInstance()
+	if err != nil {
+		s.log.Fatalf("could not connect to mongodb: %v", err)
+	}
+
 	// repository
 	authRepos := authRepository.New(db)
+	resumeRepos := resumeRepository.New(mongodb, db)
 
 	// service
 	authServices := authService.New(authRepos, s.google)
+	resumeServices := resumeService.New(resumeRepos)
 
 	// handler
 	authHandlers := authHandler.New(authServices, s.validator)
+	resumeHandlers := resumeHandler.New(resumeServices, s.log, s.validator)
 
 	s.checkHealth()
-	s.handlers = append(s.handlers, authHandlers)
+	s.handlers = append(s.handlers, authHandlers, resumeHandlers)
 }
 
 func (s *Server) Run() error {

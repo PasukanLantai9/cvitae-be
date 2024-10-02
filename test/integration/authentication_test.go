@@ -9,6 +9,7 @@ import (
 	authRepository "github.com/bccfilkom/career-path-service/internal/api/authentication/repository"
 	authService "github.com/bccfilkom/career-path-service/internal/api/authentication/service"
 	"github.com/bccfilkom/career-path-service/internal/config"
+	"github.com/bccfilkom/career-path-service/pkg/google"
 	"github.com/bccfilkom/career-path-service/pkg/postgres"
 	"github.com/jmoiron/sqlx"
 	"github.com/joho/godotenv"
@@ -45,7 +46,7 @@ func (ts *AuthTestSuite) SetupSuite() {
 
 	validator := config.NewValidator()
 	authRepos := authRepository.New(db)
-	authServices := authService.New(authRepos)
+	authServices := authService.New(authRepos, google.Google{})
 	authHandlers := authHandler.New(authServices, validator)
 
 	ts.db = db

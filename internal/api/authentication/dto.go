@@ -1,5 +1,7 @@
 package authentication
 
+import "github.com/bccfilkom/career-path-service/internal/entity"
+
 type CreateUserRequest struct {
 	Email     string `json:"email" validate:"required,email"`
 	Paassword string `json:"password" validate:"required,min=8,max=32"`
@@ -25,4 +27,10 @@ type RefresTokenRequest struct {
 type RefreshTokenResponse struct {
 	AccessToken      string `json:"accessToken"`
 	ExpiresInSeconds int64  `json:"expiresInSeconds"`
+}
+
+type UserClaims struct {
+	Email    string              `json:"email"`
+	ID       string              `json:"id"`
+	Provider entity.AuthProvider `json:"provider"`
 }

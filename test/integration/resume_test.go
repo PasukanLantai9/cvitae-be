@@ -20,6 +20,7 @@ import (
 	"github.com/redis/go-redis/v9"
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/suite"
+	"go.mongodb.org/mongo-driver/bson"
 	mongo2 "go.mongodb.org/mongo-driver/mongo"
 	"golang.org/x/net/context"
 	"io"
@@ -143,10 +144,10 @@ func (ts *ResumeTestSuite) TearDownSuite() {
 		ts.FailNowf("failed to clear data users", err.Error())
 	}
 
-	//_, err = ts.mongo.Collection("resume").DeleteMany(context.TODO(), bson.M{})
-	//if err != nil {
-	//	ts.FailNowf("failed to clear data resume in mongo", err.Error())
-	//}
+	_, err = ts.mongo.Collection("resume").DeleteMany(context.TODO(), bson.M{})
+	if err != nil {
+		ts.FailNowf("failed to clear data resume in mongo", err.Error())
+	}
 
 	err = ts.redis.FlushAll(context.Background()).Err()
 	if err != nil {

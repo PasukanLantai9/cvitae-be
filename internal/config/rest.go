@@ -8,6 +8,7 @@ import (
 	resumeHandler "github.com/bccfilkom/career-path-service/internal/api/resume/handler"
 	resumeRepository "github.com/bccfilkom/career-path-service/internal/api/resume/repository"
 	resumeService "github.com/bccfilkom/career-path-service/internal/api/resume/service"
+	"github.com/bccfilkom/career-path-service/internal/pkg/cronjob"
 	"github.com/bccfilkom/career-path-service/internal/pkg/env"
 	"github.com/bccfilkom/career-path-service/pkg/google"
 	"github.com/bccfilkom/career-path-service/pkg/mongo"
@@ -20,6 +21,7 @@ import (
 	"github.com/jmoiron/sqlx"
 	"github.com/sirupsen/logrus"
 	"net/http"
+	"time"
 )
 
 type Server struct {
@@ -63,6 +65,8 @@ func (s *Server) registerHandler() {
 		s.log.Fatalf("could not connect to redisdb: %v", err)
 	}
 
+	cronjobClient := cronjob.NewInstance()
+
 	// repository
 	authRepos := authRepository.New(db)
 	resumeRepos := resumeRepository.New(mongodb, db, redisClient)
@@ -74,6 +78,10 @@ func (s *Server) registerHandler() {
 	// handler
 	authHandlers := authHandler.New(authServices, s.validator)
 	resumeHandlers := resumeHandler.New(resumeServices, s.log, s.validator)
+
+	cronjobClient.SetupCronJob(time.Minute*10, func() error {
+		return resumeServices.SyncResumesFromRedisToMongo(redisClient, mongodb.Collection("resume"))
+	})
 
 	s.checkHealth()
 	s.handlers = append(s.handlers, authHandlers, resumeHandlers)

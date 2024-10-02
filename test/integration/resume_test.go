@@ -11,6 +11,7 @@ import (
 	"github.com/bccfilkom/career-path-service/internal/config"
 	"github.com/bccfilkom/career-path-service/internal/entity"
 	"github.com/bccfilkom/career-path-service/internal/middleware"
+	"github.com/bccfilkom/career-path-service/internal/pkg/cronjob"
 	"github.com/bccfilkom/career-path-service/pkg/mongo"
 	"github.com/bccfilkom/career-path-service/pkg/postgres"
 	redisdb "github.com/bccfilkom/career-path-service/pkg/redis"
@@ -19,7 +20,6 @@ import (
 	"github.com/redis/go-redis/v9"
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/suite"
-	"go.mongodb.org/mongo-driver/bson"
 	mongo2 "go.mongodb.org/mongo-driver/mongo"
 	"golang.org/x/net/context"
 	"io"
@@ -116,6 +116,7 @@ func (ts *ResumeTestSuite) SetupSuite() {
 	}
 
 	validator := config.NewValidator()
+	cronjobClient := cronjob.NewInstance()
 	resumeRepos := resumeRepository.New(mongos, db, redisClient)
 	resumeServices := resumeService.New(resumeRepos)
 	resumeHandlers := resumeHandler.New(resumeServices, logrus.New(), validator)
@@ -125,6 +126,10 @@ func (ts *ResumeTestSuite) SetupSuite() {
 	ts.redis = redisClient
 	ts.handler = resumeHandlers
 	ts.accessToken = token
+
+	cronjobClient.SetupCronJob(time.Second*5, func() error {
+		return resumeServices.SyncResumesFromRedisToMongo(redisClient, mongos.Collection("resume"))
+	})
 }
 
 func (ts *ResumeTestSuite) TearDownSuite() {
@@ -138,10 +143,10 @@ func (ts *ResumeTestSuite) TearDownSuite() {
 		ts.FailNowf("failed to clear data users", err.Error())
 	}
 
-	_, err = ts.mongo.Collection("resume").DeleteMany(context.TODO(), bson.M{})
-	if err != nil {
-		ts.FailNowf("failed to clear data resume in mongo", err.Error())
-	}
+	//_, err = ts.mongo.Collection("resume").DeleteMany(context.TODO(), bson.M{})
+	//if err != nil {
+	//	ts.FailNowf("failed to clear data resume in mongo", err.Error())
+	//}
 
 	err = ts.redis.FlushAll(context.Background()).Err()
 	if err != nil {
@@ -324,6 +329,98 @@ func (ts *ResumeTestSuite) TestUpdateResume_Success() {
 	if err != nil {
 		ts.FailNowf("request failed: %s", err.Error())
 	}
+
+	ts.Assert().NotNil(response)
+	ts.Assert().Equal(http.StatusNoContent, response.StatusCode)
+}
+
+func (ts *ResumeTestSuite) TestUpdateResume_SuccessWithCache() {
+	id := ts.CreateData()
+
+	app.Put("/resume/:id", middleware.JWTAccessToken(), ts.handler.HandleUpdateResume)
+
+	updateData := resume.ResumeDetailDTO{
+		PersonalDetails: resume.PersonalDetails{
+			FullName:      "Updated Name",
+			PhoneNumber:   "123-456-7890",
+			Email:         "updated.email@example.com",
+			Linkedin:      "https://linkedin.com/in/updated",
+			PortfolioURL:  "https://portfolio.com/updated",
+			Description:   "Updated description",
+			AddressString: "Updated Address",
+		},
+		ProfessionalExperience: []resume.Experience{
+			{
+				StartDate:   resume.Date{Month: "January", Year: 2021},
+				EndDate:     resume.Date{Month: "Present", Year: 2024},
+				RoleTitle:   "Updated Role",
+				CompanyName: "Updated Company",
+				Location:    "Updated Location",
+				Current:     true,
+			},
+		},
+		Education: []resume.Education{
+			{
+				StartDate:   resume.Date{Month: "August", Year: 2017},
+				EndDate:     resume.Date{Month: "May", Year: 2021},
+				School:      "Updated University",
+				Location:    "Updated Location",
+				DegreeLevel: "Bachelor's",
+				Major:       "Updated Major",
+				GPA:         3.8,
+				MaxGPA:      4.0,
+			},
+		},
+		LeadershipExperience: []resume.Leadership{
+			{
+				StartDate:        resume.Date{Month: "June", Year: 2019},
+				EndDate:          resume.Date{Month: "May", Year: 2020},
+				RoleTitle:        "Team Leader",
+				OrganisationName: "Updated Organization",
+				Location:         "Updated Location",
+				Current:          false,
+			},
+		},
+		Others: []resume.Achievement{
+			{
+				Name:        "Updated Achievement",
+				Date:        resume.Date{Month: "December", Year: 2020},
+				Category:    "Award",
+				Elaboration: resume.Elaboration{Text: "Updated description of the achievement."},
+			},
+		},
+	}
+
+	jsonData, _ := json.Marshal(updateData)
+
+	endpoint := fmt.Sprintf("/resume/%s", id)
+	request := httptest.NewRequest("PUT", endpoint, bytes.NewBuffer(jsonData))
+	request.Header.Set("Authorization", "Bearer "+ts.accessToken)
+	request.Header.Set("Content-Type", "application/json")
+
+	response, err := app.Test(request)
+	if err != nil {
+		ts.FailNowf("request failed: %s", err.Error())
+	}
+
+	ts.Assert().NotNil(response)
+	ts.Assert().Equal(http.StatusNoContent, response.StatusCode)
+
+	updateData.PersonalDetails.FullName = "Updated Name ke 2"
+
+	jsonData, _ = json.Marshal(updateData)
+
+	endpoint = fmt.Sprintf("/resume/%s", id)
+	request = httptest.NewRequest("PUT", endpoint, bytes.NewBuffer(jsonData))
+	request.Header.Set("Authorization", "Bearer "+ts.accessToken)
+	request.Header.Set("Content-Type", "application/json")
+
+	response, err = app.Test(request)
+	if err != nil {
+		ts.FailNowf("request failed: %s", err.Error())
+	}
+
+	time.Sleep(30 * time.Second)
 
 	ts.Assert().NotNil(response)
 	ts.Assert().Equal(http.StatusNoContent, response.StatusCode)

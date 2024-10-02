@@ -6,7 +6,11 @@ import (
 	"github.com/bccfilkom/career-path-service/internal/api/authentication"
 	"github.com/bccfilkom/career-path-service/internal/api/resume"
 	"github.com/bccfilkom/career-path-service/internal/entity"
+	"github.com/redis/go-redis/v9"
+	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 	"golang.org/x/net/context"
 	"time"
 )
@@ -161,6 +165,54 @@ func (s resumeService) UpdateResumeByID(ctx context.Context, resumeData entity.R
 	err = redisRepo.Set(ctx, redisKey, updatedResume, 0)
 	if err != nil {
 		return err
+	}
+
+	return nil
+}
+
+func (s resumeService) SyncResumesFromRedisToMongo(redisClient *redis.Client, cvCollection *mongo.Collection) error {
+	ctx := context.Background()
+
+	keys, err := redisClient.Keys(ctx, "cv-*").Result()
+	if err != nil {
+		fmt.Println("Error getting keys from Redis:", err)
+		return err
+	}
+
+	for _, key := range keys {
+		cvData, err := redisClient.Get(ctx, key).Result()
+		if err != nil {
+			fmt.Println("Error getting CV from Redis for key", key, ":", err)
+			continue
+		}
+
+		var cv entity.ResumeDetail
+		err = json.Unmarshal([]byte(cvData), &cv)
+		if err != nil {
+			fmt.Println("Error unmarshalling CV data for key", key, ":", err)
+			continue
+		}
+
+		objectID, _ := primitive.ObjectIDFromHex(cv.ID.Hex())
+
+		_, err = cvCollection.UpdateOne(ctx, bson.M{"userID": cv.UserID, "_id": objectID}, bson.M{
+			"$set": bson.M{
+				"personalDetails":        cv.PersonalDetails,
+				"professionalExperience": cv.ProfessionalExperience,
+				"education":              cv.Education,
+				"leadershipExperience":   cv.LeadershipExperience,
+				"others":                 cv.Others,
+			},
+		}, options.Update().SetUpsert(true))
+		if err != nil {
+			fmt.Println("Error saving CV to MongoDB for userID", cv.UserID, ":", err)
+			continue
+		}
+
+		err = redisClient.Del(ctx, key).Err()
+		if err != nil {
+			fmt.Println("Error deleting CV from Redis for key", key, ":", err)
+		}
 	}
 
 	return nil

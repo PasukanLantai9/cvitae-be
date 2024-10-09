@@ -77,3 +77,9 @@ type Date struct {
 type Elaboration struct {
 	Text string `json:"text,omitempty"`
 }
+
+type ScoringResumeResponse struct {
+	FinalScore     float64 `json:"finalScore"`
+	AdviceMessage  string  `json:"adviceMessage"`
+	OverallMessage string  `json:"overallMessage"`
+}

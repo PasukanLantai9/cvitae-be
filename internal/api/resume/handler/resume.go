@@ -91,3 +91,22 @@ func (h *ResumeHandler) HandleUpdateResume(ctx *fiber.Ctx) error {
 
 	return ctx.SendStatus(fiber.StatusNoContent)
 }
+
+func (h *ResumeHandler) HandleScoringResume(ctx *fiber.Ctx) error {
+	user, err := helper.GetUserFromContext(ctx)
+	if err != nil {
+		return authentication.ErrUnauthorized
+	}
+
+	id := ctx.Params("id", "no-id")
+	if id == "no-id" {
+		return resume.ErrObjectIDNotProvided
+	}
+
+	res, err := h.resumeService.ScoringResume(ctx.Context(), id, user.ID)
+	if err != nil {
+		return err
+	}
+
+	return ctx.Status(fiber.StatusOK).JSON(res)
+}

@@ -14,6 +14,7 @@ import (
 	"github.com/bccfilkom/career-path-service/pkg/mongo"
 	"github.com/bccfilkom/career-path-service/pkg/postgres"
 	redisdb "github.com/bccfilkom/career-path-service/pkg/redis"
+	jobMatching "github.com/bccfilkom/career-path-service/pkg/rpc/job_matching"
 	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
@@ -66,6 +67,7 @@ func (s *Server) registerHandler() {
 	}
 
 	cronjobClient := cronjob.NewInstance()
+	mlRPCClient := jobMatching.NewRpcClient(s.log)
 
 	// repository
 	authRepos := authRepository.New(db)
@@ -73,7 +75,7 @@ func (s *Server) registerHandler() {
 
 	// service
 	authServices := authService.New(authRepos, s.google)
-	resumeServices := resumeService.New(resumeRepos)
+	resumeServices := resumeService.New(resumeRepos, mlRPCClient)
 
 	// handler
 	authHandlers := authHandler.New(authServices, s.validator)

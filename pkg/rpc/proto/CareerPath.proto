@@ -1,0 +1,62 @@
+syntax = "proto3";
+
+package jobmatching;
+
+option go_package = "../job_matching;job_matching";
+
+// Message for a job posting
+message Job {
+  string company = 1;
+  string title = 2;
+  string description = 3;
+  string link = 4;
+  float score = 5;
+}
+
+// Request message for comparing CVs
+message CompareCVRequest {
+  string cv_json = 1;  // JSON representation of the CV
+}
+
+// Response message for comparing CVs
+message CompareCVResponse {
+  float final_score = 1;  // Final score of the CV
+  string overall_message = 2;  // Overall feedback message
+  string advice_message = 3;  // Advice for improvement
+}
+
+// Request message for finding jobs
+message FindJobsRequest {
+  string experience_and_skills = 1;  // User's experience and skills
+}
+
+// Response message for finding jobs
+message FindJobsResponse {
+  repeated Job jobs = 1;  // List of matching jobs
+}
+
+// Job matching service
+service CareerPath {
+  // Method to compare CV and return score and advice
+  rpc CompareCV(CompareCVRequest) returns (CompareCVResponse);
+
+  // Method to find suitable jobs based on experience and skills
+  rpc FindJobs(FindJobsRequest) returns (FindJobsResponse);
+
+  rpc Check(HealthCheckRequest) returns (HealthCheckResponse);
+
+  rpc Watch(HealthCheckRequest) returns (stream HealthCheckResponse);
+}
+
+message HealthCheckRequest {
+  string service = 1;
+}
+message HealthCheckResponse {
+  enum ServingStatus {
+    UNKNOWN = 0;
+    SERVING = 1;
+    NOT_SERVING = 2;
+    SERVICE_UNKNOWN = 3;
+  }
+  ServingStatus status = 1;
+}

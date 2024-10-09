@@ -170,6 +170,67 @@ func (s resumeService) UpdateResumeByID(ctx context.Context, resumeData entity.R
 	return nil
 }
 
+func (s resumeService) ScoringResume(ctx context.Context, resumeID string, userID string) (resume.ScoringResumeResponse, error) {
+	redisRepo, err := s.resumeRepository.NewCacheClient()
+	if err != nil {
+		return resume.ScoringResumeResponse{}, err
+	}
+
+	mongoRepo, err := s.resumeRepository.NewMongoClient(ctx, false)
+	if err != nil {
+		return resume.ScoringResumeResponse{}, err
+	}
+
+	redisKey := fmt.Sprintf("cv-%s", resumeID)
+
+	cachedResume, err := redisRepo.Get(ctx, redisKey)
+	if err == nil && cachedResume != "" {
+		var cachedResumeData resume.ResumeDetailDTO
+		err = json.Unmarshal([]byte(cachedResume), &cachedResumeData)
+		if err != nil {
+			return resume.ScoringResumeResponse{}, err
+		}
+
+		if cachedResumeData.UserID != userID {
+			return resume.ScoringResumeResponse{}, resume.ErrIncorrectObjectID
+		}
+
+		result, err := s.machineLearning.ResumeScoring(ctx, cachedResume)
+		if err != nil {
+			return resume.ScoringResumeResponse{}, err
+		}
+
+		return resume.ScoringResumeResponse{
+			OverallMessage: result.OverallMessage,
+			FinalScore:     float64(result.FinalScore),
+			AdviceMessage:  result.AdviceMessage,
+		}, nil
+	}
+
+	resumeData, err := mongoRepo.Resume.GetByIDAndUserID(ctx, resumeID, userID)
+	if err != nil {
+		return resume.ScoringResumeResponse{}, err
+	}
+
+	jsonResumeData, err := json.Marshal(s.formattedResumeDetail(resumeData))
+	if err != nil {
+		return resume.ScoringResumeResponse{}, err
+	}
+
+	jsonString := string(jsonResumeData)
+
+	result, err := s.machineLearning.ResumeScoring(ctx, jsonString)
+	if err != nil {
+		return resume.ScoringResumeResponse{}, err
+	}
+
+	return resume.ScoringResumeResponse{
+		OverallMessage: result.OverallMessage,
+		FinalScore:     float64(result.FinalScore),
+		AdviceMessage:  result.AdviceMessage,
+	}, nil
+}
+
 func (s resumeService) SyncResumesFromRedisToMongo(redisClient *redis.Client, cvCollection *mongo.Collection) error {
 	ctx := context.Background()
 

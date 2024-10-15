@@ -75,7 +75,7 @@ func (s *Server) registerHandler() {
 
 	// service
 	authServices := authService.New(authRepos, s.google)
-	resumeServices := resumeService.New(resumeRepos, mlRPCClient)
+	resumeServices := resumeService.New(resumeRepos, mlRPCClient, s.google)
 
 	// handler
 	authHandlers := authHandler.New(authServices, s.validator)

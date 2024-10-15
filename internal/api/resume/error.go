@@ -8,4 +8,7 @@ import (
 var (
 	ErrObjectIDNotProvided = response.NewError(http.StatusUnprocessableEntity, "object ID not provided")
 	ErrIncorrectObjectID   = response.NewError(http.StatusBadRequest, "incorrect object ID")
+
+	ErrPDFFileNotProvided = response.NewError(http.StatusUnprocessableEntity, "pdf file not provided")
+	ErrInvalidResumeFile  = response.NewError(http.StatusBadRequest, "invalid resume file")
 )

@@ -4,6 +4,7 @@ import (
 	"github.com/bccfilkom/career-path-service/internal/api/resume"
 	"github.com/bccfilkom/career-path-service/internal/entity"
 	"go.mongodb.org/mongo-driver/bson/primitive"
+	"regexp"
 )
 
 func (h *ResumeHandler) convertDTOToEntity(req resume.ResumeDetailDTO) (entity.ResumeDetail, error) {
@@ -99,4 +100,10 @@ func (h *ResumeHandler) convertDTOToEntity(req resume.ResumeDetailDTO) (entity.R
 	}
 
 	return result, nil
+}
+
+func (h *ResumeHandler) isPDF(fileName string) bool {
+	regex := regexp.MustCompile(`(?i)\.pdf$`)
+
+	return regex.MatchString(fileName)
 }

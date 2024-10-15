@@ -5,15 +5,18 @@ import (
 	"github.com/bccfilkom/career-path-service/internal/api/resume"
 	resumeRepository "github.com/bccfilkom/career-path-service/internal/api/resume/repository"
 	"github.com/bccfilkom/career-path-service/internal/entity"
+	"github.com/bccfilkom/career-path-service/pkg/google"
 	"github.com/bccfilkom/career-path-service/pkg/rpc/job_matching"
 	"github.com/redis/go-redis/v9"
 	"go.mongodb.org/mongo-driver/mongo"
 	"golang.org/x/net/context"
+	"mime/multipart"
 )
 
 type resumeService struct {
 	resumeRepository resumeRepository.Repository
 	machineLearning  jobMatching.MachineLearning
+	google           google.Google
 }
 
 type ResumeService interface {
@@ -23,13 +26,15 @@ type ResumeService interface {
 	UpdateResumeByID(context.Context, entity.ResumeDetail) error
 
 	ScoringResume(context.Context, string, string) (resume.ScoringResumeResponse, error)
+	ScoringResumePDF(context.Context, *multipart.FileHeader, string) (resume.ScoringResumeResponse, error)
 
 	SyncResumesFromRedisToMongo(redisClient *redis.Client, cvCollection *mongo.Collection) error
 }
 
-func New(repo resumeRepository.Repository, ml jobMatching.MachineLearning) ResumeService {
+func New(repo resumeRepository.Repository, ml jobMatching.MachineLearning, google google.Google) ResumeService {
 	return &resumeService{
 		resumeRepository: repo,
 		machineLearning:  ml,
+		google:           google,
 	}
 }

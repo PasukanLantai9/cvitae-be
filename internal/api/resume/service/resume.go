@@ -12,6 +12,8 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"golang.org/x/net/context"
+	"io"
+	"mime/multipart"
 	"time"
 )
 
@@ -218,6 +220,44 @@ func (s resumeService) ScoringResume(ctx context.Context, resumeID string, userI
 	}
 
 	jsonString := string(jsonResumeData)
+
+	result, err := s.machineLearning.ResumeScoring(ctx, jsonString)
+	if err != nil {
+		return resume.ScoringResumeResponse{}, err
+	}
+
+	return resume.ScoringResumeResponse{
+		OverallMessage: result.OverallMessage,
+		FinalScore:     float64(result.FinalScore),
+		AdviceMessage:  result.AdviceMessage,
+	}, nil
+}
+
+func (s resumeService) ScoringResumePDF(ctx context.Context, pdfFile *multipart.FileHeader, userID string) (resume.ScoringResumeResponse, error) {
+	pdfByte, err := pdfFile.Open()
+	if err != nil {
+		return resume.ScoringResumeResponse{}, err
+	}
+	defer func(pdfByte multipart.File) {
+		err := pdfByte.Close()
+		if err != nil {
+
+		}
+	}(pdfByte)
+
+	fileBytes, err := io.ReadAll(pdfByte)
+	if err != nil {
+		return resume.ScoringResumeResponse{}, err
+	}
+
+	jsonString, err := s.google.Gemini.GenerateResumeJsonFromPDF(ctx, fileBytes)
+	if err != nil {
+		return resume.ScoringResumeResponse{}, err
+	}
+
+	if jsonString == "not-resume" {
+		return resume.ScoringResumeResponse{}, resume.ErrInvalidResumeFile
+	}
 
 	result, err := s.machineLearning.ResumeScoring(ctx, jsonString)
 	if err != nil {

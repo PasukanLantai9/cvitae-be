@@ -12,6 +12,7 @@ import (
 	"github.com/bccfilkom/career-path-service/internal/entity"
 	"github.com/bccfilkom/career-path-service/internal/middleware"
 	"github.com/bccfilkom/career-path-service/internal/pkg/cronjob"
+	"github.com/bccfilkom/career-path-service/pkg/google"
 	"github.com/bccfilkom/career-path-service/pkg/mongo"
 	"github.com/bccfilkom/career-path-service/pkg/postgres"
 	redisdb "github.com/bccfilkom/career-path-service/pkg/redis"
@@ -118,11 +119,12 @@ func (ts *ResumeTestSuite) SetupSuite() {
 	}
 
 	mlRPCClient := jobMatching.NewRpcClient(logrus.New())
+	googleClient := google.New()
 
 	validator := config.NewValidator()
 	cronjobClient := cronjob.NewInstance()
 	resumeRepos := resumeRepository.New(mongos, db, redisClient)
-	resumeServices := resumeService.New(resumeRepos, mlRPCClient)
+	resumeServices := resumeService.New(resumeRepos, mlRPCClient, googleClient)
 	resumeHandlers := resumeHandler.New(resumeServices, logrus.New(), validator)
 
 	ts.db = db

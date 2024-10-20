@@ -17,6 +17,7 @@ type Google struct {
 	Gemini interface {
 		GenerateResumeJsonFromPDF(context.Context, []byte) (string, error)
 		GenerateExperienceAndSkillsParagrafFromJSON(context.Context, []byte) (string, error)
+		GenerateExperienceAndSkillsParagrafFromPDF(context.Context, []byte) (string, error)
 	}
 }
 

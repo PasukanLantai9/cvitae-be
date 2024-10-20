@@ -79,9 +79,9 @@ type Elaboration struct {
 }
 
 type ScoringResumeResponse struct {
-	FinalScore     float64 `json:"finalScore"`
-	AdviceMessage  string  `json:"adviceMessage"`
-	OverallMessage string  `json:"overallMessage"`
+	FinalScore     float64  `json:"finalScore"`
+	AdviceMessage  []string `json:"adviceMessage"`
+	OverallMessage string   `json:"overallMessage"`
 }
 
 type JobVacancyRespone struct {

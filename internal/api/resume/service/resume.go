@@ -14,6 +14,7 @@ import (
 	"golang.org/x/net/context"
 	"io"
 	"mime/multipart"
+	"strings"
 	"time"
 )
 
@@ -227,7 +228,7 @@ func (s resumeService) ScoringResume(ctx context.Context, resumeID string, userI
 		return resume.ScoringResumeResponse{
 			OverallMessage: result.OverallMessage,
 			FinalScore:     float64(result.FinalScore),
-			AdviceMessage:  result.AdviceMessage,
+			AdviceMessage:  strings.Split(result.AdviceMessage, "\n"),
 		}, nil
 	}
 
@@ -251,7 +252,7 @@ func (s resumeService) ScoringResume(ctx context.Context, resumeID string, userI
 	return resume.ScoringResumeResponse{
 		OverallMessage: result.OverallMessage,
 		FinalScore:     float64(result.FinalScore),
-		AdviceMessage:  result.AdviceMessage,
+		AdviceMessage:  strings.Split(result.AdviceMessage, "\n"),
 	}, nil
 }
 
@@ -289,7 +290,7 @@ func (s resumeService) ScoringResumePDF(ctx context.Context, pdfFile *multipart.
 	return resume.ScoringResumeResponse{
 		OverallMessage: result.OverallMessage,
 		FinalScore:     float64(result.FinalScore),
-		AdviceMessage:  result.AdviceMessage,
+		AdviceMessage:  strings.Split(result.AdviceMessage, "\n"),
 	}, nil
 }
 

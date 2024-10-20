@@ -273,6 +273,18 @@ paths:
           description: means that the requirements in the request path are not met correctly.
 
 
+  /scoring/{id}:
+    get:
+      tags:
+        - Resume
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+
+
 components:
   securitySchemes:
     bearerAuth:

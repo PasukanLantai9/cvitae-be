@@ -138,21 +138,21 @@ func (h *ResumeHandler) HandleScoringResumePDF(ctx *fiber.Ctx) error {
 	return ctx.Status(fiber.StatusOK).JSON(res)
 }
 
-//func (h *ResumeHandler) HandleJobVacancyFromResume(ctx *fiber.Ctx) error {
-//	user, err := helper.GetUserFromContext(ctx)
-//	if err != nil {
-//		return authentication.ErrUnauthorized
-//	}
-//
-//	id := ctx.Params("id", "no-id")
-//	if id == "no-id" {
-//		return resume.ErrObjectIDNotProvided
-//	}
-//
-//	res, err := h.resumeService.ScoringResume(ctx.Context(), id, user.ID)
-//	if err != nil {
-//		return err
-//	}
-//
-//	return ctx.Status(fiber.StatusOK).JSON(res)
-//}
+func (h *ResumeHandler) HandleJobVacancyFromResume(ctx *fiber.Ctx) error {
+	user, err := helper.GetUserFromContext(ctx)
+	if err != nil {
+		return authentication.ErrUnauthorized
+	}
+
+	id := ctx.Params("id", "no-id")
+	if id == "no-id" {
+		return resume.ErrObjectIDNotProvided
+	}
+
+	res, err := h.resumeService.JobVacancyFromResume(ctx.Context(), id, user.ID)
+	if err != nil {
+		return err
+	}
+
+	return ctx.Status(fiber.StatusOK).JSON(res)
+}

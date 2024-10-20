@@ -634,3 +634,140 @@ func (ts *ResumeTestSuite) TestScoringResumePDF_Success() {
 	ts.Assert().NotNil(response)
 	ts.Assert().Equal(http.StatusOK, response.StatusCode)
 }
+
+func (ts *ResumeTestSuite) TestJobVacancyResume_Success() {
+	id := ts.CreateData()
+
+	app.Put("/resume/:id", middleware.JWTAccessToken(), ts.handler.HandleUpdateResume)
+
+	updateData := resume.ResumeDetailDTO{
+		PersonalDetails: resume.PersonalDetails{
+			FullName:      "Updated Name",
+			PhoneNumber:   "123-456-7890",
+			Email:         "updated.email@example.com",
+			Linkedin:      "https://linkedin.com/in/updated",
+			PortfolioURL:  "https://portfolio.com/updated",
+			Description:   "Updated description",
+			AddressString: "Updated Address",
+		},
+		ProfessionalExperience: []resume.Experience{
+			{
+				StartDate:   resume.Date{Month: "Jul", Year: 2024},
+				EndDate:     resume.Date{},
+				RoleTitle:   "Backend Developer",
+				CompanyName: "Dakana Techworks",
+				Location:    "Malang",
+				Current:     true,
+				Elaboration: []resume.Elaboration{
+					{Text: "Designed database schema with 15++ tables."},
+					{Text: "Maintained CI/CD pipeline using GitHub Actions."},
+				},
+			},
+		},
+		Education: []resume.Education{
+			{
+				StartDate:   resume.Date{Month: "Aug", Year: 2023},
+				EndDate:     resume.Date{Month: "Aug", Year: 2027},
+				School:      "Universitas Brawijaya",
+				Location:    "Kota Malang, Indonesia",
+				DegreeLevel: "Degree",
+				Major:       "Informatics Engineering",
+				GPA:         3.89,
+				MaxGPA:      4.00,
+				Elaboration: []resume.Elaboration{
+					{Text: "Participated in hackathon competitions."},
+					{Text: "Fullstack developer for student orientation committee."},
+				},
+			},
+		},
+		LeadershipExperience: []resume.Leadership{
+			{
+				StartDate:        resume.Date{Month: "Jan", Year: 2024},
+				EndDate:          resume.Date{},
+				RoleTitle:        "Fullstack Developer",
+				OrganisationName: "Student Orientation Committee",
+				Location:         "Brawijaya",
+				Current:          true,
+				Elaboration: []resume.Elaboration{
+					{Text: "Built software solution for over 900+ users."},
+				},
+			},
+		},
+		Others: []resume.Achievement{
+			{
+				Name:        "2nd Place at Social Startup Games Hackfest 2024",
+				Date:        resume.Date{Year: 2024},
+				Category:    "Achievements",
+				Elaboration: resume.Elaboration{Text: "2nd Place at Social Startup Games Hackfest 2024."},
+			},
+			{
+				Name:        "Certified Kubernetes Administrator",
+				Date:        resume.Date{Year: 2023},
+				Category:    "Certificates",
+				Elaboration: resume.Elaboration{Text: "Certified Kubernetes Administrator (CKA)."},
+			},
+			{
+				Name:        "AWS Solutions Architect",
+				Date:        resume.Date{Year: 2024},
+				Category:    "Certificates",
+				Elaboration: resume.Elaboration{Text: "AWS Certified Solutions Architect – Associate."},
+			},
+			{
+				Name:        "Technical Skills",
+				Category:    "Skills",
+				Elaboration: resume.Elaboration{Text: "Proficient in Go, JavaScript, and Python. Strong skills in RESTful API design, microservices architecture, and containerization (Docker, Kubernetes)."},
+			},
+			{
+				Name:        "Soft Skills",
+				Category:    "Skills",
+				Elaboration: resume.Elaboration{Text: "Effective communication, problem-solving, and time management."},
+			},
+		},
+	}
+
+	jsonData, _ := json.Marshal(updateData)
+
+	endpoint := fmt.Sprintf("/resume/%s", id)
+	request := httptest.NewRequest("PUT", endpoint, bytes.NewBuffer(jsonData))
+	request.Header.Set("Authorization", "Bearer "+ts.accessToken)
+	request.Header.Set("Content-Type", "application/json")
+
+	response, err := app.Test(request)
+	if err != nil {
+		ts.FailNowf("request failed: %s", err.Error())
+	}
+
+	ts.Assert().NotNil(response)
+	ts.Assert().Equal(http.StatusNoContent, response.StatusCode)
+
+	updateData.PersonalDetails.FullName = "Updated Name ke 2"
+
+	jsonData, _ = json.Marshal(updateData)
+
+	endpoint = fmt.Sprintf("/resume/%s", id)
+	request = httptest.NewRequest("PUT", endpoint, bytes.NewBuffer(jsonData))
+	request.Header.Set("Authorization", "Bearer "+ts.accessToken)
+	request.Header.Set("Content-Type", "application/json")
+
+	response, err = app.Test(request)
+	if err != nil {
+		ts.FailNowf("request failed: %s", err.Error())
+	}
+
+	ts.Assert().NotNil(response)
+	ts.Assert().Equal(http.StatusNoContent, response.StatusCode)
+
+	app.Get("/job-vacancy/:id", middleware.JWTAccessToken(), ts.handler.HandleJobVacancyFromResume)
+
+	endpoint = fmt.Sprintf("/job-vacancy/%s", id)
+	request = httptest.NewRequest("GET", endpoint, bytes.NewBuffer(nil))
+	request.Header.Set("Authorization", "Bearer "+ts.accessToken)
+
+	response, err = app.Test(request, -1)
+	if err != nil {
+		ts.FailNowf("request failed: %s", err.Error())
+	}
+
+	ts.Assert().NotNil(response)
+	ts.Assert().Equal(http.StatusOK, response.StatusCode)
+}

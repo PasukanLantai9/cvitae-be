@@ -2,9 +2,11 @@ package google
 
 import (
 	"encoding/json"
+	"fmt"
 	"github.com/google/generative-ai-go/genai"
 	"golang.org/x/net/context"
 	"strconv"
+	"strings"
 )
 
 func (g googleGemini) GenerateResumeJsonFromPDF(ctx context.Context, pdfFile []byte) (string, error) {
@@ -84,4 +86,31 @@ func (g googleGemini) GenerateResumeJsonFromPDF(ctx context.Context, pdfFile []b
 	}
 
 	return strJson, nil
+}
+
+func (g googleGemini) GenerateExperienceAndSkillsParagrafFromJSON(ctx context.Context, jsonData []byte) (string, error) {
+	content, err := g.model.GenerateContent(ctx,
+		genai.Text(`Based on the following JSON data, generate a CV summary paragraph that combines the user's professional experience and skills. For example: 
+"I have experience as a Graphic Designer for over 5 years, working at PT. Kreatif Abadi in Jakarta. During my time there, I developed marketing materials such as brochures, posters, and social media content, collaborating with the marketing team to create engaging campaigns. 
+My skills include proficiency in design software like Adobe Photoshop, Illustrator, and InDesign, as well as experience in UI/UX design, project management, and digital illustration."`),
+		genai.Text("Ensure all relevant data from the JSON is included, and the output should be in one line."),
+		genai.Text("Give me only the string output in one line, without any additional formatting or extraneous characters."),
+		genai.Text(jsonData),
+	)
+	if err != nil {
+		return "", err
+	}
+
+	var formatted strings.Builder
+	if content != nil && content.Candidates != nil {
+		for _, cand := range content.Candidates {
+			if cand.Content != nil {
+				for _, part := range cand.Content.Parts {
+					formatted.WriteString(fmt.Sprintf("%v", part))
+				}
+			}
+		}
+	}
+
+	return formatted.String(), nil
 }

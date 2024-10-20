@@ -83,3 +83,11 @@ type ScoringResumeResponse struct {
 	AdviceMessage  string  `json:"adviceMessage"`
 	OverallMessage string  `json:"overallMessage"`
 }
+
+type JobVacancyRespone struct {
+	Company     string  `json:"company,omitempty"`
+	Title       string  `json:"title,omitempty"`
+	Description string  `json:"description,omitempty"`
+	Link        string  `json:"link,omitempty"`
+	Score       float32 `json:"score,omitempty"`
+}

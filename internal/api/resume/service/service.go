@@ -27,6 +27,7 @@ type ResumeService interface {
 
 	ScoringResume(context.Context, string, string) (resume.ScoringResumeResponse, error)
 	ScoringResumePDF(context.Context, *multipart.FileHeader, string) (resume.ScoringResumeResponse, error)
+	JobVacancyFromResume(context.Context, string, string) ([]resume.JobVacancyRespone, error)
 
 	SyncResumesFromRedisToMongo(redisClient *redis.Client, cvCollection *mongo.Collection) error
 }

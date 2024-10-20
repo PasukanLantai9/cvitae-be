@@ -103,6 +103,28 @@ func (s resumeService) GetResumeByID(ctx context.Context, resumeID string, userI
 		return resume.ResumeDetailDTO{}, err
 	}
 
+	redisRepo, err := s.resumeRepository.NewCacheClient()
+	if err != nil {
+		return resume.ResumeDetailDTO{}, err
+	}
+
+	redisKey := fmt.Sprintf("cv-%s", resumeID)
+
+	cachedResume, err := redisRepo.Get(ctx, redisKey)
+	if err == nil && cachedResume != "" {
+		var cachedResumeData entity.ResumeDetail
+		err = json.Unmarshal([]byte(cachedResume), &cachedResumeData)
+		if err != nil {
+			return resume.ResumeDetailDTO{}, err
+		}
+
+		if cachedResumeData.UserID != userID {
+			return resume.ResumeDetailDTO{}, resume.ErrIncorrectObjectID
+		}
+
+		return s.formattedResumeDetail(cachedResumeData), nil
+	}
+
 	resumeData, err := mongoRepo.Resume.GetByIDAndUserID(ctx, resumeID, userID)
 	if err != nil {
 		return resume.ResumeDetailDTO{}, err
@@ -136,7 +158,7 @@ func (s resumeService) UpdateResumeByID(ctx context.Context, resumeData entity.R
 			return resume.ErrIncorrectObjectID
 		}
 
-		updatedResume, err := json.Marshal(resumeData)
+		updatedResume, err := json.Marshal(s.formattedResumeDetail(resumeData))
 		if err != nil {
 			return err
 		}
@@ -159,7 +181,7 @@ func (s resumeService) UpdateResumeByID(ctx context.Context, resumeData entity.R
 		return err
 	}
 
-	updatedResume, err := json.Marshal(resumeData)
+	updatedResume, err := json.Marshal(s.formattedResumeDetail(resumeData))
 	if err != nil {
 		return err
 	}
@@ -269,6 +291,77 @@ func (s resumeService) ScoringResumePDF(ctx context.Context, pdfFile *multipart.
 		FinalScore:     float64(result.FinalScore),
 		AdviceMessage:  result.AdviceMessage,
 	}, nil
+}
+
+func (s resumeService) JobVacancyFromResume(ctx context.Context, resumeID string, userID string) ([]resume.JobVacancyRespone, error) {
+	redisRepo, err := s.resumeRepository.NewCacheClient()
+	if err != nil {
+		return nil, err
+	}
+
+	mongoRepo, err := s.resumeRepository.NewMongoClient(ctx, false)
+	if err != nil {
+		return nil, err
+	}
+
+	redisKey := fmt.Sprintf("cv-%s", resumeID)
+
+	cachedResume, err := redisRepo.Get(ctx, redisKey)
+	if err == nil && cachedResume != "" {
+		var cachedResumeData resume.ResumeDetailDTO
+		err = json.Unmarshal([]byte(cachedResume), &cachedResumeData)
+		if err != nil {
+			return nil, err
+		}
+
+		if cachedResumeData.UserID != userID {
+			return nil, resume.ErrIncorrectObjectID
+		}
+
+		experienceAndSkills, err := s.google.Gemini.GenerateExperienceAndSkillsParagrafFromJSON(ctx, []byte(cachedResume))
+		if err != nil {
+			return nil, err
+		}
+
+		result, err := s.machineLearning.FindJobsRelated(ctx, experienceAndSkills)
+		if err != nil {
+			return nil, err
+		}
+
+		res := make([]resume.JobVacancyRespone, len(result))
+		for i, j := range result {
+			res[i] = s.formattedJobVacancy(&j)
+		}
+
+		return res, nil
+	}
+
+	resumeData, err := mongoRepo.Resume.GetByIDAndUserID(ctx, resumeID, userID)
+	if err != nil {
+		return nil, err
+	}
+
+	jsonResumeData, err := json.Marshal(s.formattedResumeDetail(resumeData))
+	if err != nil {
+		return nil, err
+	}
+
+	experienceAndSkills, err := s.google.Gemini.GenerateExperienceAndSkillsParagrafFromJSON(ctx, jsonResumeData)
+	if err != nil {
+		return nil, err
+	}
+
+	result, err := s.machineLearning.FindJobsRelated(ctx, experienceAndSkills)
+	if err != nil {
+		return nil, err
+	}
+
+	res := make([]resume.JobVacancyRespone, len(result))
+	for i, j := range result {
+		res[i] = s.formattedJobVacancy(&j)
+	}
+
+	return res, nil
 }
 
 func (s resumeService) SyncResumesFromRedisToMongo(redisClient *redis.Client, cvCollection *mongo.Collection) error {

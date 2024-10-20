@@ -3,6 +3,7 @@ package resumeService
 import (
 	"github.com/bccfilkom/career-path-service/internal/api/resume"
 	"github.com/bccfilkom/career-path-service/internal/entity"
+	jobMatching "github.com/bccfilkom/career-path-service/pkg/rpc/job_matching"
 )
 
 func (s resumeService) formattedResume(resumeData entity.Resume) resume.GetResumeResponse {
@@ -101,4 +102,14 @@ func convertElaboration(elaborations []entity.Elaboration) []resume.Elaboration 
 		})
 	}
 	return result
+}
+
+func (s resumeService) formattedJobVacancy(job *jobMatching.Job) resume.JobVacancyRespone {
+	return resume.JobVacancyRespone{
+		Title:       job.Title,
+		Score:       job.Score,
+		Description: job.Description,
+		Link:        job.Link,
+		Company:     job.Company,
+	}
 }

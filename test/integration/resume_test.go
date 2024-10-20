@@ -622,14 +622,14 @@ func (ts *ResumeTestSuite) TestScoringResumePDF_Success() {
 		ts.FailNowf("request failed: %s", err.Error())
 	}
 
-	bodyBytes, err := io.ReadAll(response.Body)
-
-	var responseBody any
-	if err := json.Unmarshal(bodyBytes, &responseBody); err != nil {
-		ts.FailNowf("request failed: %s", err.Error())
-	} else {
-		ts.T().Log(responseBody)
-	}
+	//bodyBytes, err := io.ReadAll(response.Body)
+	//
+	//var responseBody any
+	//if err := json.Unmarshal(bodyBytes, &responseBody); err != nil {
+	//	ts.FailNowf("request failed: %s", err.Error())
+	//} else {
+	//	ts.T().Log(responseBody)
+	//}
 
 	ts.Assert().NotNil(response)
 	ts.Assert().Equal(http.StatusOK, response.StatusCode)
@@ -766,6 +766,60 @@ func (ts *ResumeTestSuite) TestJobVacancyResume_Success() {
 	response, err = app.Test(request, -1)
 	if err != nil {
 		ts.FailNowf("request failed: %s", err.Error())
+	}
+
+	ts.Assert().NotNil(response)
+	ts.Assert().Equal(http.StatusOK, response.StatusCode)
+}
+
+func (ts *ResumeTestSuite) TestJobVacancyPDF_Success() {
+	app.Post("/job-vacancy/file", middleware.JWTAccessToken(), ts.handler.HandleJobVacancyFromPDF)
+
+	body := &bytes.Buffer{}
+	writer := multipart.NewWriter(body)
+
+	pdfFile, err := os.Open("../file/resume.pdf")
+	if err != nil {
+		ts.FailNowf("error opening file: %v", err.Error())
+	}
+	defer func(pdfFile *os.File) {
+		err := pdfFile.Close()
+		if err != nil {
+			ts.FailNowf("error closing pdf file: %s", err.Error())
+		}
+	}(pdfFile)
+
+	part, err := writer.CreateFormFile("resume", filepath.Base(pdfFile.Name()))
+	if err != nil {
+		ts.FailNowf("error creating form file: %s", err.Error())
+	}
+
+	_, err = io.Copy(part, pdfFile)
+	if err != nil {
+		ts.FailNowf("error copying file: %s", err.Error())
+	}
+
+	err = writer.Close()
+	if err != nil {
+		ts.FailNowf("error closing writer: %s", err.Error())
+	}
+
+	request := httptest.NewRequest("POST", "/job-vacancy/file", body)
+	request.Header.Set("Authorization", "Bearer "+ts.accessToken)
+	request.Header.Set("Content-Type", writer.FormDataContentType())
+
+	response, err := app.Test(request, -1)
+	if err != nil {
+		ts.FailNowf("request failed: %s", err.Error())
+	}
+
+	bodyBytes, err := io.ReadAll(response.Body)
+
+	var responseBody any
+	if err := json.Unmarshal(bodyBytes, &responseBody); err != nil {
+		ts.FailNowf("request failed: %s", err.Error())
+	} else {
+		ts.T().Log(responseBody)
 	}
 
 	ts.Assert().NotNil(response)

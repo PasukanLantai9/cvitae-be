@@ -356,7 +356,105 @@ paths:
         "400":
           description: unauthorized access token.
         "422":
-          description: means that the requirements the request are not met correctly.
+          description: means that the requirements in the request are not met correctly.
+
+  /resume/job-vacancy/{id}:
+    get:
+      tags:
+        - Resume
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+      responses:
+        "200":
+          description: Successful scoring of the resume
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  company:
+                    type: string
+                    description: The name of the company offering the job.
+                    example: "Tech Innovators Inc."
+                  title:
+                    type: string
+                    description: The title of the job position.
+                    example: "Software Engineer"
+                  description:
+                    type: string
+                    description: A brief description of the job vacancy.
+                    example: "We are looking for a software engineer to join our dynamic team."
+                  link:
+                    type: string
+                    description: A link to the full job listing.
+                    format: uri
+                    example: "https://www.company.com/job/software-engineer"
+                  score:
+                    type: number
+                    format: float
+                    description: The relevance score of the job listing.
+                    example: 85.5
+        "400":
+          description: unauthorized access token.
+        "422":
+          description: means that the requirements in the request path are not met correctly.
+
+  /resume/job-vacancy/file:
+    post:
+      tags:
+        - Resume
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                resume:
+                  type: string
+                  format: pdf
+                  description: The PDF file containing the resume to be scored.
+      responses:
+        "200":
+          description: Successful scoring of the resume
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  company:
+                    type: string
+                    description: The name of the company offering the job.
+                    example: "Tech Innovators Inc."
+                  title:
+                    type: string
+                    description: The title of the job position.
+                    example: "Software Engineer"
+                  description:
+                    type: string
+                    description: A brief description of the job vacancy.
+                    example: "We are looking for a software engineer to join our dynamic team."
+                  link:
+                    type: string
+                    description: A link to the full job listing.
+                    format: uri
+                    example: "https://www.company.com/job/software-engineer"
+                  score:
+                    type: number
+                    format: float
+                    description: The relevance score of the job listing.
+                    example: 85.5
+        "400":
+          description: unauthorized access token.
+        "422":
+          description: means that the requirements in the request are not met correctly.
+
 
 
 components:

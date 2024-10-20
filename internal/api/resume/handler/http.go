@@ -33,5 +33,5 @@ func (h *ResumeHandler) Start(srv fiber.Router) {
 	resume.Get("/scoring/:id", h.HandleScoringResume)
 	resume.Post("/scoring/file", h.HandleScoringResumePDF)
 	resume.Get("/job-vacancy/:id", h.HandleJobVacancyFromResume)
-	resume.Post("/job-vacancy/file")
+	resume.Post("/job-vacancy/file", h.HandleJobVacancyFromPDF)
 }

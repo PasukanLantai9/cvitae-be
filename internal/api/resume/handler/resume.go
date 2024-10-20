@@ -156,3 +156,30 @@ func (h *ResumeHandler) HandleJobVacancyFromResume(ctx *fiber.Ctx) error {
 
 	return ctx.Status(fiber.StatusOK).JSON(res)
 }
+
+func (h *ResumeHandler) HandleJobVacancyFromPDF(ctx *fiber.Ctx) error {
+	user, err := helper.GetUserFromContext(ctx)
+	if err != nil {
+		return authentication.ErrUnauthorized
+	}
+
+	pdfFile, err := ctx.FormFile("resume")
+	if err != nil {
+		return resume.ErrPDFFileNotProvided
+	}
+
+	if pdfFile.Size == 0 {
+		return resume.ErrPDFFileNotProvided
+	}
+
+	if !h.isPDF(pdfFile.Filename) {
+		return resume.ErrInvalidResumeFile
+	}
+
+	res, err := h.resumeService.JobVacancyFromPDF(ctx.Context(), pdfFile, user.ID)
+	if err != nil {
+		return err
+	}
+
+	return ctx.Status(fiber.StatusOK).JSON(res)
+}

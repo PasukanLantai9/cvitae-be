@@ -365,6 +365,44 @@ func (s resumeService) JobVacancyFromResume(ctx context.Context, resumeID string
 	return res, nil
 }
 
+func (s resumeService) JobVacancyFromPDF(ctx context.Context, pdf *multipart.FileHeader, userID string) ([]resume.JobVacancyRespone, error) {
+	pdfByte, err := pdf.Open()
+	if err != nil {
+		return nil, err
+	}
+	defer func(pdfByte multipart.File) {
+		err := pdfByte.Close()
+		if err != nil {
+		}
+	}(pdfByte)
+
+	fileBytes, err := io.ReadAll(pdfByte)
+	if err != nil {
+		return nil, err
+	}
+
+	experienceAndSkills, err := s.google.Gemini.GenerateExperienceAndSkillsParagrafFromPDF(ctx, fileBytes)
+	if err != nil {
+		return nil, err
+	}
+
+	if experienceAndSkills == "not-resume" {
+		return nil, resume.ErrInvalidResumeFile
+	}
+
+	result, err := s.machineLearning.FindJobsRelated(ctx, experienceAndSkills)
+	if err != nil {
+		return nil, err
+	}
+
+	res := make([]resume.JobVacancyRespone, len(result))
+	for i, j := range result {
+		res[i] = s.formattedJobVacancy(&j)
+	}
+
+	return res, nil
+}
+
 func (s resumeService) SyncResumesFromRedisToMongo(redisClient *redis.Client, cvCollection *mongo.Collection) error {
 	ctx := context.Background()
 

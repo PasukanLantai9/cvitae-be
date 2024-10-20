@@ -119,7 +119,7 @@ func (h *ResumeHandler) HandleScoringResumePDF(ctx *fiber.Ctx) error {
 
 	pdfFile, err := ctx.FormFile("resume")
 	if err != nil {
-		return err
+		return resume.ErrPDFFileNotProvided
 	}
 
 	if pdfFile.Size == 0 {

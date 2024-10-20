@@ -273,7 +273,7 @@ paths:
           description: means that the requirements in the request path are not met correctly.
 
 
-  /scoring/{id}:
+  /resume/scoring/{id}:
     get:
       tags:
         - Resume
@@ -283,6 +283,80 @@ paths:
         - in: path
           name: id
           required: true
+      responses:
+        "200":
+          description: Successful scoring of the resume
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  finalScore:
+                    type: number
+                    format: float
+                    description: The final score assigned to the resume.
+                  adviceMessage:
+                    type: array
+                    items:
+                      type: string
+                    description: A list of advice messages for improving the resume.
+                  overallMessage:
+                    type: string
+                    description: Overall feedback regarding the resume.
+                required:
+                  - finalScore
+                  - adviceMessage
+                  - overallMessage
+        "400":
+          description: unauthorized access token.
+        "422":
+          description: means that the requirements in the request path are not met correctly.
+
+  /resume/scoring/file:
+    post:
+      tags:
+        - Resume
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                resume:
+                  type: string
+                  format: pdf
+                  description: The PDF file containing the resume to be scored.
+      responses:
+        '200':
+          description: Successful scoring of the resume
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  finalScore:
+                    type: number
+                    format: float
+                    description: The final score assigned to the resume.
+                  adviceMessage:
+                    type: array
+                    items:
+                      type: string
+                    description: A list of advice messages for improving the resume.
+                  overallMessage:
+                    type: string
+                    description: Overall feedback regarding the resume.
+                required:
+                  - finalScore
+                  - adviceMessage
+                  - overallMessage
+        "400":
+          description: unauthorized access token.
+        "422":
+          description: means that the requirements the request are not met correctly.
 
 
 components:

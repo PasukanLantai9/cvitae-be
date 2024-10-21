@@ -25,8 +25,8 @@ func New(resumeService resumeService.ResumeService, log *logrus.Logger, validate
 func (h *ResumeHandler) Start(srv fiber.Router) {
 	resume := srv.Group("/resume")
 	resume.Use(middleware.JWTAccessToken())
-	resume.Post("/", h.HandleCreateResume)
-	resume.Get("/", h.HandleGetUserResume)
+	resume.Post("", h.HandleCreateResume)
+	resume.Get("", h.HandleGetUserResume)
 	resume.Get("/:id", h.HandleGetResumeByID)
 	resume.Put("/:id", h.HandleUpdateResume)
 

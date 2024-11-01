@@ -1,8 +1,10 @@
 package resumeService
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
+	"github.com/SebastiaanKlippert/go-wkhtmltopdf"
 	"github.com/bccfilkom/career-path-service/internal/api/authentication"
 	"github.com/bccfilkom/career-path-service/internal/api/resume"
 	"github.com/bccfilkom/career-path-service/internal/entity"
@@ -12,6 +14,7 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"golang.org/x/net/context"
+	"html/template"
 	"io"
 	"mime/multipart"
 	"strings"
@@ -370,6 +373,7 @@ func (s resumeService) JobVacancyFromPDF(ctx context.Context, pdf *multipart.Fil
 	if err != nil {
 		return nil, err
 	}
+
 	defer func(pdfByte multipart.File) {
 		err := pdfByte.Close()
 		if err != nil {
@@ -401,6 +405,96 @@ func (s resumeService) JobVacancyFromPDF(ctx context.Context, pdf *multipart.Fil
 	}
 
 	return res, nil
+}
+
+func (s resumeService) DownloadResumePDF(ctx context.Context, resumeID string, userID string) ([]byte, error) {
+	redisRepo, err := s.resumeRepository.NewCacheClient()
+	if err != nil {
+		return nil, err
+	}
+
+	mongoRepo, err := s.resumeRepository.NewMongoClient(ctx, false)
+	if err != nil {
+		return nil, err
+	}
+
+	redisKey := fmt.Sprintf("cv-%s", resumeID)
+	cachedResume, err := redisRepo.Get(ctx, redisKey)
+	if err == nil && cachedResume != "" {
+		var cachedResumeData resume.ResumeDetailDTO
+		err = json.Unmarshal([]byte(cachedResume), &cachedResumeData)
+		if err != nil {
+			return nil, err
+		}
+
+		if cachedResumeData.UserID != userID {
+			return nil, resume.ErrIncorrectObjectID
+		}
+
+		tmpl, err := template.ParseFiles("resume_template.gohtml")
+		if err != nil {
+			return nil, err
+		}
+
+		var htmlBuffer bytes.Buffer
+		err = tmpl.Execute(&htmlBuffer, []byte(cachedResume))
+		if err != nil {
+			return nil, err
+		}
+
+		pdfg, err := wkhtmltopdf.NewPDFGenerator()
+		if err != nil {
+			return nil, err
+		}
+
+		pdfg.AddPage(wkhtmltopdf.NewPageReader(strings.NewReader(htmlBuffer.String())))
+
+		pdfg.PageSize.Set(wkhtmltopdf.PageSizeA4)
+
+		err = pdfg.Create()
+		if err != nil {
+			return nil, err
+		}
+
+		return pdfg.Bytes(), nil
+	}
+
+	resumeData, err := mongoRepo.Resume.GetByIDAndUserID(ctx, resumeID, userID)
+	if err != nil {
+		return nil, err
+	}
+
+	jsonResumeData, err := json.Marshal(s.formattedResumeDetail(resumeData))
+	if err != nil {
+		return nil, err
+	}
+
+	tmpl, err := template.ParseFiles("resume_template.gohtml")
+	if err != nil {
+		return nil, err
+	}
+
+	// Create a buffer to hold the rendered HTML
+	var htmlBuffer bytes.Buffer
+	err = tmpl.Execute(&htmlBuffer, jsonResumeData)
+	if err != nil {
+		return nil, err
+	}
+
+	pdfg, err := wkhtmltopdf.NewPDFGenerator()
+	if err != nil {
+		return nil, err
+	}
+
+	pdfg.AddPage(wkhtmltopdf.NewPageReader(strings.NewReader(htmlBuffer.String())))
+	pdfg.PageSize.Set(wkhtmltopdf.PageSizeA4)
+
+	err = pdfg.Create()
+	if err != nil {
+		return nil, err
+	}
+
+	return pdfg.Bytes(), nil
 }
 
 func (s resumeService) SyncResumesFromRedisToMongo(redisClient *redis.Client, cvCollection *mongo.Collection) error {

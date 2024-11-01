@@ -19,28 +19,37 @@ const (
 	AccessTokenSecret = "JWT_ACCESS_TOKEN_SECRET"
 )
 
-func JWTAccessToken() fiber.Handler {
-	return func(c *fiber.Ctx) error {
-		if c.Get("Authorization") == "" {
-			return ErrUnauthorized
-		}
+type tokenMiddleware struct {
+}
 
-		if !strings.Contains(c.Get("Authorization"), "Bearer") {
-			return ErrUnauthorized
-		}
+func newTokenMiddleware() *tokenMiddleware {
+	return &tokenMiddleware{}
+}
 
-		userToken, err := token.VerifyTokenHeader(c, AccessTokenSecret)
-		if err != nil {
-			return ErrUnauthorized
-		} else {
-			claims := userToken.Claims.(jwt.MapClaims)
-			user := authentication.UserClaims{
-				ID:       claims["id"].(string),
-				Provider: entity.AuthProvider(claims["provider"].(float64)),
-				Email:    claims["email"].(string),
-			}
-			c.Locals("user", user)
-			return c.Next()
+func (m *middleware) NewtokenMiddleware(ctx *fiber.Ctx) error {
+	clientIP := ctx.IP()
+
+	if ctx.Get("Authorization") == "" {
+		m.log.Warnf("authorization header is missing, client ip is %s", clientIP)
+		return ErrUnauthorized
+	}
+
+	if !strings.Contains(ctx.Get("Authorization"), "Bearer") {
+		m.log.Warnf("authorization header is missing, client ip is %s", clientIP)
+		return ErrUnauthorized
+	}
+
+	userToken, err := token.VerifyTokenHeader(ctx, AccessTokenSecret)
+	if err != nil {
+		return ErrUnauthorized
+	} else {
+		claims := userToken.Claims.(jwt.MapClaims)
+		user := authentication.UserClaims{
+			ID:       claims["id"].(string),
+			Provider: entity.AuthProvider(claims["provider"].(float64)),
+			Email:    claims["email"].(string),
 		}
+		ctx.Locals("user", user)
+		return ctx.Next()
 	}
 }

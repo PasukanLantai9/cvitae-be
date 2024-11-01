@@ -8,6 +8,7 @@ import (
 	resumeHandler "github.com/bccfilkom/career-path-service/internal/api/resume/handler"
 	resumeRepository "github.com/bccfilkom/career-path-service/internal/api/resume/repository"
 	resumeService "github.com/bccfilkom/career-path-service/internal/api/resume/service"
+	"github.com/bccfilkom/career-path-service/internal/middleware"
 	"github.com/bccfilkom/career-path-service/internal/pkg/cronjob"
 	"github.com/bccfilkom/career-path-service/internal/pkg/env"
 	"github.com/bccfilkom/career-path-service/pkg/google"
@@ -26,12 +27,13 @@ import (
 )
 
 type Server struct {
-	app       *fiber.App
-	db        *sqlx.DB
-	handlers  []handler
-	log       *logrus.Logger
-	validator *validator.Validate
-	google    google.Google
+	app        *fiber.App
+	db         *sqlx.DB
+	handlers   []handler
+	log        *logrus.Logger
+	validator  *validator.Validate
+	google     google.Google
+	middleware middleware.Middleware
 }
 
 type handler interface {
@@ -40,10 +42,11 @@ type handler interface {
 
 func NewServer(fiberApp *fiber.App, log *logrus.Logger, validator *validator.Validate, googles google.Google) (*Server, error) {
 	bootstrap := &Server{
-		app:       fiberApp,
-		log:       log,
-		validator: validator,
-		google:    googles,
+		app:        fiberApp,
+		log:        log,
+		validator:  validator,
+		google:     googles,
+		middleware: middleware.New(log),
 	}
 
 	return bootstrap, nil
@@ -79,7 +82,7 @@ func (s *Server) registerHandler() {
 
 	// handler
 	authHandlers := authHandler.New(authServices, s.validator)
-	resumeHandlers := resumeHandler.New(resumeServices, s.log, s.validator)
+	resumeHandlers := resumeHandler.New(resumeServices, s.log, s.validator, s.middleware)
 
 	cronjobClient.SetupCronJob(time.Minute*10, func() error {
 		return resumeServices.SyncResumesFromRedisToMongo(redisClient, mongodb.Collection("resume"))
@@ -96,6 +99,9 @@ func (s *Server) Run() error {
 
 	s.app.Use(cors.New())
 	s.app.Use(logger.New())
+	s.app.Use(s.middleware.NewtokenMiddleware)
+	s.app.Use(s.middleware.NewLoggingMiddleware)
+
 	for _, h := range s.handlers {
 		h.Start(router)
 	}

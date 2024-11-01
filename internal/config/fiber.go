@@ -30,6 +30,7 @@ func newErrorHandler(log *logrus.Logger) fiber.ErrorHandler {
 	return func(ctx *fiber.Ctx, err error) error {
 		var apiErr *response.Error
 		if errors.As(err, &apiErr) {
+			log.Errorf("client ip %s, error %s", ctx.IP(), apiErr.Error())
 			return ctx.Status(apiErr.Code).JSON(fiber.Map{
 				"errors": fiber.Map{"message": apiErr.Error()},
 			})
@@ -49,11 +50,13 @@ func newErrorHandler(log *logrus.Logger) fiber.ErrorHandler {
 
 		var fiberErr *fiber.Error
 		if errors.As(err, &fiberErr) {
+			log.Errorf("client ip %s, error %s", ctx.IP(), fiberErr.Error())
 			return ctx.Status(fiberErr.Code).JSON(fiber.Map{
 				"errors": fiber.Map{"message": utils.StatusMessage(fiberErr.Code), "err": err},
 			})
 		}
 
+		log.Errorf("client ip %s, error %s", ctx.IP(), err.Error())
 		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"errors": fiber.Map{"message": utils.StatusMessage(fiber.StatusInternalServerError), "err": err},
 		})

@@ -10,21 +10,26 @@ import (
 
 type ResumeHandler struct {
 	resumeService resumeService.ResumeService
+	middleware    middleware.Middleware
 	log           *logrus.Logger
 	validator     *validator.Validate
 }
 
-func New(resumeService resumeService.ResumeService, log *logrus.Logger, validate *validator.Validate) *ResumeHandler {
+func New(resumeService resumeService.ResumeService,
+	log *logrus.Logger,
+	validate *validator.Validate,
+	middleware middleware.Middleware) *ResumeHandler {
 	return &ResumeHandler{
 		resumeService: resumeService,
 		log:           log,
 		validator:     validate,
+		middleware:    middleware,
 	}
 }
 
 func (h *ResumeHandler) Start(srv fiber.Router) {
 	resume := srv.Group("/resume")
-	resume.Use(middleware.JWTAccessToken())
+	resume.Use(h.middleware.NewtokenMiddleware)
 	resume.Post("", h.HandleCreateResume)
 	resume.Get("", h.HandleGetUserResume)
 	resume.Get("/:id", h.HandleGetResumeByID)

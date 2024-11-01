@@ -99,7 +99,7 @@ func (s *Server) Run() error {
 
 	s.app.Use(cors.New())
 	s.app.Use(logger.New())
-	s.app.Use(s.middleware.NewtokenMiddleware)
+	s.app.Use(s.middleware.NewRateLimitter)
 	s.app.Use(s.middleware.NewLoggingMiddleware)
 
 	for _, h := range s.handlers {

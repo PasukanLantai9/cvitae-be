@@ -1,6 +1,8 @@
 package resumeHandler
 
 import (
+	"fmt"
+
 	"github.com/bccfilkom/career-path-service/internal/api/authentication"
 	"github.com/bccfilkom/career-path-service/internal/api/resume"
 	"github.com/bccfilkom/career-path-service/internal/pkg/helper"
@@ -62,6 +64,29 @@ func (h *ResumeHandler) HandleGetResumeByID(ctx *fiber.Ctx) error {
 	}
 
 	return ctx.Status(fiber.StatusOK).JSON(res)
+}
+
+func (h *ResumeHandler) HandleDownloadResumePDF(ctx *fiber.Ctx) error {
+	user, err := helper.GetUserFromContext(ctx)
+	if err != nil {
+		return authentication.ErrUnauthorized
+	}
+
+	id := ctx.Params("id", "no-id")
+	if id == "no-id" {
+		return resume.ErrObjectIDNotProvided
+	}
+
+	pdfBytes, err := h.resumeService.DownloadResumePDF(ctx.Context(), id, user.ID)
+	if err != nil {
+		return err
+	}
+
+	ctx.Set("Content-Type", "application/pdf")
+	ctx.Set("Content-Disposition", fmt.Sprintf("attachment; filename=resume-%s.pdf", id))
+	ctx.Set("Content-Length", fmt.Sprintf("%d", len(pdfBytes)))
+
+	return ctx.Status(fiber.StatusOK).Send(pdfBytes)
 }
 
 func (h *ResumeHandler) HandleUpdateResume(ctx *fiber.Ctx) error {

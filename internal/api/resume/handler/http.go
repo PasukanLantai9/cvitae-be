@@ -32,6 +32,7 @@ func (h *ResumeHandler) Start(srv fiber.Router) {
 	resume.Use(h.middleware.NewtokenMiddleware)
 	resume.Post("", h.HandleCreateResume)
 	resume.Get("", h.HandleGetUserResume)
+	resume.Get("/download/:id", h.HandleDownloadResumePDF)
 	resume.Get("/:id", h.HandleGetResumeByID)
 	resume.Put("/:id", h.HandleUpdateResume)
 

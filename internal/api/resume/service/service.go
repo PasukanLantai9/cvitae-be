@@ -1,16 +1,17 @@
 package resumeService
 
 import (
+	"mime/multipart"
+
 	"github.com/bccfilkom/career-path-service/internal/api/authentication"
 	"github.com/bccfilkom/career-path-service/internal/api/resume"
 	resumeRepository "github.com/bccfilkom/career-path-service/internal/api/resume/repository"
 	"github.com/bccfilkom/career-path-service/internal/entity"
 	"github.com/bccfilkom/career-path-service/pkg/google"
-	"github.com/bccfilkom/career-path-service/pkg/rpc/job_matching"
+	jobMatching "github.com/bccfilkom/career-path-service/pkg/rpc/job_matching"
 	"github.com/redis/go-redis/v9"
 	"go.mongodb.org/mongo-driver/mongo"
 	"golang.org/x/net/context"
-	"mime/multipart"
 )
 
 type resumeService struct {
@@ -24,6 +25,8 @@ type ResumeService interface {
 	GetUserResume(context.Context, string) ([]resume.GetResumeResponse, error)
 	GetResumeByID(context.Context, string, string) (resume.ResumeDetailDTO, error)
 	UpdateResumeByID(context.Context, entity.ResumeDetail) error
+
+	DownloadResumePDF(ctx context.Context, resumeID string, userID string) ([]byte, error)
 
 	ScoringResume(context.Context, string, string) (resume.ScoringResumeResponse, error)
 	ScoringResumePDF(context.Context, *multipart.FileHeader, string) (resume.ScoringResumeResponse, error)

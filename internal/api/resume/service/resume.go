@@ -4,6 +4,12 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"html/template"
+	"io"
+	"mime/multipart"
+	"strings"
+	"time"
+
 	"github.com/SebastiaanKlippert/go-wkhtmltopdf"
 	"github.com/bccfilkom/career-path-service/internal/api/authentication"
 	"github.com/bccfilkom/career-path-service/internal/api/resume"
@@ -14,11 +20,6 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"golang.org/x/net/context"
-	"html/template"
-	"io"
-	"mime/multipart"
-	"strings"
-	"time"
 )
 
 func (s resumeService) CreateResume(ctx context.Context, req resume.ResumeRequest, user authentication.UserClaims) (string, error) {
@@ -437,7 +438,7 @@ func (s resumeService) DownloadResumePDF(ctx context.Context, resumeID string, u
 		}
 
 		var htmlBuffer bytes.Buffer
-		err = tmpl.Execute(&htmlBuffer, []byte(cachedResume))
+		err = tmpl.Execute(&htmlBuffer, cachedResumeData)
 		if err != nil {
 			return nil, err
 		}
@@ -464,11 +465,6 @@ func (s resumeService) DownloadResumePDF(ctx context.Context, resumeID string, u
 		return nil, err
 	}
 
-	jsonResumeData, err := json.Marshal(s.formattedResumeDetail(resumeData))
-	if err != nil {
-		return nil, err
-	}
-
 	tmpl, err := template.ParseFiles("resume_template.gohtml")
 	if err != nil {
 		return nil, err
@@ -476,7 +472,8 @@ func (s resumeService) DownloadResumePDF(ctx context.Context, resumeID string, u
 
 	// Create a buffer to hold the rendered HTML
 	var htmlBuffer bytes.Buffer
-	err = tmpl.Execute(&htmlBuffer, jsonResumeData)
+	formatted := s.formattedResumeDetail(resumeData)
+	err = tmpl.Execute(&htmlBuffer, formatted)
 	if err != nil {
 		return nil, err
 	}

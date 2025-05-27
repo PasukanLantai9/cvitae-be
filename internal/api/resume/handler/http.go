@@ -35,6 +35,7 @@ func (h *ResumeHandler) Start(srv fiber.Router) {
 	resume.Get("/download/:id", h.HandleDownloadResumePDF)
 	resume.Get("/:id", h.HandleGetResumeByID)
 	resume.Put("/:id", h.HandleUpdateResume)
+	resume.Delete("/:id", h.HandleDeleteResumeByID)
 
 	resume.Get("/scoring/:id", h.HandleScoringResume)
 	resume.Post("/scoring/file", h.HandleScoringResumePDF)

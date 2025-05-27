@@ -1,10 +1,11 @@
 package resumeRepository
 
 import (
+	"time"
+
 	"github.com/bccfilkom/career-path-service/internal/entity"
 	"github.com/jmoiron/sqlx"
 	"golang.org/x/net/context"
-	"time"
 )
 
 type resumeDBSQL struct {
@@ -71,4 +72,19 @@ func (r *resumeSQLRepository) GetByUserID(ctx context.Context, userID string) ([
 	}
 
 	return resumes, nil
+}
+
+func (r *resumeSQLRepository) DeleteById(ctx context.Context, ID string) error {
+	argsKV := map[string]interface{}{
+		"id": ID,
+	}
+
+	query, args, err := sqlx.Named(queryDeleteResumeByID, argsKV)
+	if err != nil {
+		return err
+	}
+	query = r.q.Rebind(query)
+
+	_, err = r.q.ExecContext(ctx, query, args...)
+	return err
 }

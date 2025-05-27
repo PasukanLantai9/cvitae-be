@@ -66,6 +66,25 @@ func (h *ResumeHandler) HandleGetResumeByID(ctx *fiber.Ctx) error {
 	return ctx.Status(fiber.StatusOK).JSON(res)
 }
 
+func (h *ResumeHandler) HandleDeleteResumeByID(ctx *fiber.Ctx) error {
+	_, err := helper.GetUserFromContext(ctx)
+	if err != nil {
+		return authentication.ErrUnauthorized
+	}
+
+	id := ctx.Params("id", "no-id")
+	if id == "no-id" {
+		return resume.ErrObjectIDNotProvided
+	}
+
+	err = h.resumeService.DeleteResumeByID(ctx.Context(), id)
+	if err != nil {
+		return err
+	}
+
+	return ctx.Status(fiber.StatusOK).JSON(err)
+}
+
 func (h *ResumeHandler) HandleDownloadResumePDF(ctx *fiber.Ctx) error {
 	user, err := helper.GetUserFromContext(ctx)
 	if err != nil {

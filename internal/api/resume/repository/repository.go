@@ -2,11 +2,12 @@ package resumeRepository
 
 import (
 	"context"
+	"time"
+
 	"github.com/bccfilkom/career-path-service/internal/entity"
 	"github.com/jmoiron/sqlx"
 	"github.com/redis/go-redis/v9"
 	"go.mongodb.org/mongo-driver/mongo"
-	"time"
 )
 
 // New creates a new MongoDB repository
@@ -117,6 +118,7 @@ type SqlClient struct {
 	Resume interface {
 		CreateResume(ctx context.Context, resume entity.Resume) error
 		GetByUserID(ctx context.Context, userID string) ([]entity.Resume, error)
+		DeleteById(ctx context.Context, ID string) error
 	}
 	Commit   func() error
 	Rollback func() error

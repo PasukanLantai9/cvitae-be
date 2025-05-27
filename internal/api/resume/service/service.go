@@ -24,6 +24,7 @@ type ResumeService interface {
 	CreateResume(context.Context, resume.ResumeRequest, authentication.UserClaims) (string, error)
 	GetUserResume(context.Context, string) ([]resume.GetResumeResponse, error)
 	GetResumeByID(context.Context, string, string) (resume.ResumeDetailDTO, error)
+	DeleteResumeByID(ctx context.Context, resumeID string) error
 	UpdateResumeByID(context.Context, entity.ResumeDetail) error
 
 	DownloadResumePDF(ctx context.Context, resumeID string, userID string) ([]byte, error)

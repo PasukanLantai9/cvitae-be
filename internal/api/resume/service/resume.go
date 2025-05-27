@@ -138,6 +138,20 @@ func (s resumeService) GetResumeByID(ctx context.Context, resumeID string, userI
 	return s.formattedResumeDetail(resumeData), nil
 }
 
+func (s resumeService) DeleteResumeByID(ctx context.Context, resumeID string) error {
+	sqlRepo, err := s.resumeRepository.NewSqlClient(false)
+	if err != nil {
+		return err
+	}
+
+	err = sqlRepo.Resume.DeleteById(ctx, resumeID)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (s resumeService) UpdateResumeByID(ctx context.Context, resumeData entity.ResumeDetail) error {
 	redisRepo, err := s.resumeRepository.NewCacheClient()
 	if err != nil {

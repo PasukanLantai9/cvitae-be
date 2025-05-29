@@ -1,0 +1,433 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+    <style type="text/css">
+        .resume {
+            color: #000;
+            font-family: Arial, sans-serif !important;
+            padding-bottom: 20px;
+            padding-left: 20px;
+            padding-right: 20px;
+            letter-spacing: 1px;
+        }
+        .header {
+            text-align: center;
+            width: 100%;
+        }
+        .header,
+        .header-left {
+            -webkit-border-horizontal-spacing: 2px;
+            -webkit-border-vertical-spacing: 0;
+        }
+        .header-left {
+            text-align: left;
+        }
+        .header-right-region {
+            padding-left: 16px;
+            padding-top: 2px;
+            vertical-align: top;
+        }
+        .header-image {
+            height: 80px;
+            width: 80px;
+        }
+        .header-name {
+            color: var(--header-color);
+            font-size: var(--header-font) !important;
+            font-weight: 700;
+            padding-top: 20px;
+        }
+        .header-details a:link {
+            color: gray;
+            -webkit-text-decoration: none;
+            text-decoration: none;
+        }
+        .header-details,
+        .header-details-left {
+            font-size: var(--normal-font);
+        }
+        .header-details a,
+        .header-details-left a {
+            cursor: default;
+            pointer-events: none !important;
+        }
+        .header-address {
+            color: gray;
+            font-size: var(--normal-font);
+        }
+        .header-description {
+            font-size: var(--normal-font);
+            line-height: var(--line-height);
+            margin-top: 4px;
+            text-align: var(--word-justification);
+            white-space: pre-line;
+        }
+        .body-main-header {
+            color: var(--header-color);
+            font-size: var(--body-main-header-font);
+            font-weight: 700;
+            margin-left: 4px;
+            margin-top: 8px;
+            /*page-break-before: always;*/
+            text-align: left;
+            text-align: var(--word-justification);
+            width: auto;
+        }
+        .body-border {
+            border-bottom: 1.5px solid #000;
+        }
+        .body-title-country-date {
+            border-spacing: 0;
+            font-size: var(--normal-font);
+            margin-top: 5px;
+            padding-left: 8px;
+            padding-right: 8px;
+            text-align: left;
+            width: 100%;
+        }
+        .body-title-country {
+            font-weight: 700;
+        }
+        .body-country {
+            color: gray;
+        }
+        .body-date {
+            float: right;
+            text-align: right;
+            width: 300px;
+        }
+        .body-subtitle {
+            margin-bottom: 2px;
+        }
+        .body-subtitle,
+        .body-subtitle-pro {
+            font-size: var(--normal-font);
+            font-style: italic;
+            line-height: var(--line-height);
+            margin-left: 8px;
+            margin-top: 0;
+            text-align: left;
+        }
+        .body-description {
+            color: gray;
+            font-size: var(--normal-font);
+            line-height: var(--line-height);
+            margin-bottom: 2px;
+            margin-left: 8px;
+            text-align: left;
+        }
+        .body-elaboration {
+            font-size: var(--normal-font);
+            margin-left: 22px !important;
+            padding-left: 0 !important;
+            text-align: var(--word-justification);
+        }
+        .body-elaboration-other-skills {
+            margin-top: 3px;
+        }
+        .body-individual-elaboration {
+            list-style-type: disc;
+        }
+        .body-individual-elaboration,
+        .body-sub-individual-elaboration {
+            font-size: var(--normal-font);
+            line-height: var(--line-height);
+            text-justify: inter-word !important;
+            width: auto;
+        }
+        .body-nonlist-elaboration {
+            font-size: var(--normal-font);
+            margin-left: 8px !important;
+            margin-top: 4px;
+            padding-left: 0;
+            text-align: left;
+        }
+        .body-blur {
+            filter: blur(4px);
+            -webkit-filter: blur(4px);
+        }
+        .body-blur-text {
+            font-size: 14px;
+            font-weight: 700;
+            margin-bottom: 12px;
+            margin-top: 12px;
+        }
+        .resume-preview-card {
+            color: #000;
+            height: 841.89px !important;
+            margin: auto;
+            max-height: 841.89px !important;
+            min-width: 595.28px !important;
+            overflow-x: auto;
+            overflow-y: auto;
+            width: 616.28px !important;
+        }
+        .resume-preview-card-title-text {
+            font-size: 14px;
+        }
+        div.test:hover {
+            background-color: var(--bg-hover-color);
+            font-size: var(--hover-font-size);
+        }
+        .unselectable {
+            -moz-user-select: -moz-none;
+            -webkit-user-select: none;
+            user-select: none;
+        }
+        .toolbar {
+            background: #fff;
+            border-radius: 8px;
+            display: flex;
+            margin-bottom: 24px;
+            padding: 12px 24px;
+        }
+        .page-breaker {
+          height: 100% !important;
+          left: 0;
+          position: absolute;
+          top: 0;
+        }
+        .page-breaker-item {
+            bottom: 0;
+            position: relative;
+        }
+        .page-breaker-item:before {
+            border-bottom: 2px dashed #ced0d1;
+            bottom: 0;
+            content: "";
+            height: 1px;
+            left: 0;
+            position: absolute;
+            width: 595.28px !important;
+        }
+        .scroller {
+            max-width: 595.28px !important;
+            min-width: 595.28px !important;
+            pointer-events: auto;
+            position: relative;
+        }
+        .header-color-wrapper {
+            gap: 5px !important;
+        }
+        .expansion-text {
+            background: #fff;
+            border-top: 1px solid #e5e5e5;
+            font-size: 14px !important;
+            position: relative !important;
+            z-index: 9;
+        }
+        .expansion-text .mdi-chevron-down {
+            margin-top: -1.5px !important;
+        }
+        .expandable {
+            gap: 30px;
+        }
+        .header-image-wrapper {
+            padding-top: 25px;
+            vertical-align: top;
+        }
+        .body-certificate-link {
+            height: var(--normal-font) !important;
+            margin-left: 2px;
+            margin-right: 2px;
+            -webkit-text-decoration: none !important;
+            text-decoration: none !important;
+            width: var(--normal-font) !important;
+        }
+        .body-certificate-icon {
+            display: inline-block;
+            height: var(--normal-font) !important;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            user-select: none;
+            width: var(--normal-font) !important;
+        }
+    </style>
+    <style type="text/css">
+        .resume-row[data-v-1cd4e838] {
+            width: 100%;
+        }
+        .resume-max-width[data-v-1cd4e838] {
+            max-width: 100rem;
+        }
+    </style>
+    <link data-n-head="5" rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@mdi/font@6.x/css/materialdesignicons.min.css" defer="">
+    <link data-n-head="1" rel="preconnect" href="https://fonts.googleapis.com">
+    <link data-n-head="1" rel="preconnect" href="https://fonts.gstatic.com" crossorigin="true">
+    <link data-n-head="1" rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,100;0,300;0,400;0,700;0,900;1,100;1,300;1,400;1,700;1,900&amp;display=swap" defer="">
+    <link data-n-head="1" rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&amp;display=swap" defer="">
+    <link data-n-head="1" rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@100..900&amp;family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&amp;display=swap" defer="">
+
+    <meta
+            data-n-head="5"
+            name="viewport"
+            content="width=device-width, initial-scale=1, maximum-scale=1.0, user-scalable=no"
+    />
+    <noscript data-n-head="6" data-hid="305080c9"><style></style></noscript>
+</head>
+<body>
+<div id="pdf">
+    <div class="resume">
+	{{if .PersonalDetails}}
+        <table class="header-left">
+            <tbody>
+            <tr>
+                <td>
+                    <h1 class="header-name">{{.PersonalDetails.FullName}}</h1>
+                    <div class="header-details-left">
+                        <a href="tel:{{.PersonalDetails.PhoneNumber}}"
+                        >{{.PersonalDetails.PhoneNumber}}</a
+                        >
+                        |
+                        <a href="mailto:{{.PersonalDetails.Email}}"
+                        >{{.PersonalDetails.Email}}</a
+                        >
+                        |
+                        <a href="{{.PersonalDetails.Linkedin}}"
+                        >{{.PersonalDetails.Linkedin}}</a
+                        >
+                        |
+                        <a href="{{.PersonalDetails.PortfolioURL}}"
+                        >{{.PersonalDetails.PortfolioURL}}</a
+                        >
+                    </div>
+                    <div class="header-address">
+                        {{.PersonalDetails.AddressString}}
+                    </div>
+                    <div class="header-description">
+                        {{.PersonalDetails.Description}}
+                    </div>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+	{{end}}
+        <div style="clear: both"></div>
+        <div class="content">
+	{{if .ProfessionalExperience}}
+            <h2 class="body-main-header">Work Experiences</h2>
+            <div class="body-border"></div>
+            <div>
+                {{range .ProfessionalExperience}}
+                    <table class="body-title-country-date">
+                        <tbody>
+                        <tr>
+                            <td class="body-title-country">
+                                <span class="body-title">{{.CompanyName}}</span>
+                                <span class="body-country">- {{.Location}}</span>
+                            </td>
+                            <td class="body-date">
+                                {{.StartDate.Month}} {{.StartDate.Year}} - {{if.Current}}Present{{else}}{{.EndDate.Month}} {{.EndDate.Year}}{{end}}
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                    <div class="body-subtitle">{{.RoleTitle}}</div>
+                    <ul class="body-elaboration">
+                        {{range .Elaboration}}
+                            <li class="body-individual-elaboration">{{.Text}}</li>
+                        {{end}}
+                    </ul>
+                {{end}}
+	{{end}}
+            </div>
+            <div class="">
+		{{if .Education}}
+                <h2 class="body-main-header">Education Level</h2>
+                <div class="body-border"></div>
+                <div>
+                    {{range .Education}}
+                        <table class="body-title-country-date">
+                            <tbody>
+                            <tr>
+                                <td class="body-title-country">
+                                    <span class="body-title">{{.School}}</span>
+                                    <span class="body-country">- {{.Location}}</span>
+                                </td>
+                                <td class="body-date">
+                                    {{.StartDate.Month}} {{.StartDate.Year}} -
+                                    {{.EndDate.Month}} {{.EndDate.Year}}
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                        <div class="body-subtitle">
+                            {{.DegreeLevel}} , {{.Major}}<span>, {{.GPA}}/{{.MaxGPA}}</span>
+                        </div>
+                        <ul class="body-elaboration">
+                            <li class="body-individual-elaboration">
+                                Participate as a fullstack developer on student orientation
+                                committee, Faculty of Computer Science
+                            </li>
+                            <li class="body-individual-elaboration">
+                                Active on many hacktahon competition
+                            </li>
+                        </ul>
+                    {{end}}
+                </div>
+		{{end}}
+                <div class="">
+		{{if .LeadershipExperience}}
+                    <h2 class="body-main-header">Organisational Experience</h2>
+                    <div class="body-border"></div>
+                    {{range .LeadershipExperience}}
+                        <table class="body-title-country-date">
+                            <tbody>
+                            <tr>
+                                <td class="body-title-country">
+                      <span class="body-title">{{.OrganisationName}}</span
+                      ><span class="body-country"> - {{.Location}}</span>
+                                </td>
+                                <td class="body-date">
+                                    {{.StartDate.Month}} {{.StartDate.Year}} - {{if
+                                    .Current}}Present{{else}}{{.EndDate.Month}}
+                                    {{.EndDate.Year}}{{end}}
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                        <div class="body-subtitle">{{.RoleTitle}}</div>
+                        <ul class="body-elaboration">
+                            {{range .Elaboration}}
+                                <li class="body-individual-elaboration">{{.Text}}</li>
+                            {{end}}
+                        </ul>
+                    {{end}}
+                </div>
+		{{end}}
+                <div class="">
+		{{if .Others}}
+                    <h2 class="body-main-header">
+                        Skills, Achievements &amp; Other Experience
+                    </h2>
+                    <div class="body-border"></div>
+                    <ul class="body-elaboration body-elaboration-other-skills">
+                        {{range .Others}} 
+			{{if eq .Category "Achievements"}}
+                            <li class="body-individual-elaboration">
+                                <b>Achievements</b><span> ({{.Date.Year}})</span
+                                ><span>: {{.Elaboration.Text}}</span>
+                            </li>
+                        {{end}}
+			{{if eq .Category "Skills"}}
+                            <li class="body-individual-elaboration">
+                                <b>Skills</b><span> ({{.Date.Year}})</span
+                                ><span>: {{.Elaboration.Text}}</span>
+                            </li>
+                        {{end}}
+			{{if eq .Category "Certificates"}}
+                            <li class="body-individual-elaboration">
+                                <b>Certificates</b><span> ({{.Date.Year}})</span
+                                ><span>: {{.Elaboration.Text}}</span>
+                            </li>
+                        {{end}}
+			{{end}}
+                    </ul>
+		{{end}}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>
